@@ -307,6 +307,28 @@ window.NAQSH_I18N = {
   'st.past': { uz: 'O‘tgan', ru: 'Прошедшие', en: 'Past' },
   'st.cancelled': { uz: 'Bekor qilingan', ru: 'Отменённые', en: 'Cancelled' },
 
+  /* Telegram login */
+  'tg.btn': { uz: 'Telegram orqali kirish', ru: 'Войти через Telegram', en: 'Sign in with Telegram' },
+  'tg.title': { uz: 'Telegram orqali kirish', ru: 'Вход через Telegram', en: 'Sign in with Telegram' },
+  'tg.step1': { uz: 'Telegram botni oching va <b>Start</b> ni bosing.', ru: 'Откройте Telegram-бота и нажмите <b>Start</b>.', en: 'Open the Telegram bot and press <b>Start</b>.' },
+  'tg.step2': { uz: 'Botga telefon raqamingizni yuboring.', ru: 'Отправьте боту свой номер телефона.', en: 'Share your phone number with the bot.' },
+  'tg.step3': { uz: 'Shu sahifada uchta raqam chiqadi — botdagisiga mosini bosing.', ru: 'На этой странице появятся три числа — нажмите то, что прислал бот.', en: 'Three numbers will appear on this page — tap the one the bot sent you.' },
+  'tg.open': { uz: 'Telegram botni ochish', ru: 'Открыть Telegram-бота', en: 'Open Telegram bot' },
+  'tg.waiting': { uz: 'Botda Start bosilishi kutilmoqda…', ru: 'Ожидаем нажатия Start в боте…', en: 'Waiting for you to press Start in the bot…' },
+  'tg.started': { uz: 'Bot ochildi. Telefon raqamingiz kutilmoqda…', ru: 'Бот открыт. Ожидаем ваш номер телефона…', en: 'Bot opened. Waiting for your phone number…' },
+  'tg.pick': { uz: 'Telegram botda ko‘rsatilgan raqamni tanlang:', ru: 'Выберите число, которое показал Telegram-бот:', en: 'Choose the number shown by the Telegram bot:' },
+  'tg.pickNote': { uz: 'Noto‘g‘ri raqam tanlansa, kirish bekor qilinadi.', ru: 'При выборе неверного числа вход будет отменён.', en: 'Choosing the wrong number cancels the sign-in.' },
+  'tg.other': { uz: 'Boshqa usul bilan kirish', ru: 'Войти другим способом', en: 'Use another method' },
+  'tg.ok': { uz: 'Telegram orqali kirdingiz', ru: 'Вы вошли через Telegram', en: 'Signed in with Telegram' },
+  'tg.wrong': { uz: 'Raqam mos kelmadi. Qaytadan urinib ko‘ring.', ru: 'Число не совпало. Попробуйте ещё раз.', en: 'The number did not match. Please try again.' },
+  'tg.expired': { uz: 'Kirish so‘rovi eskirgan. Qaytadan urinib ko‘ring.', ru: 'Запрос на вход устарел. Попробуйте ещё раз.', en: 'The sign-in request expired. Please try again.' },
+  'tg.error': { uz: 'Telegram bot bilan bog‘lanib bo‘lmadi. Birozdan keyin urinib ko‘ring.', ru: 'Не удалось связаться с Telegram-ботом. Попробуйте позже.', en: 'Could not reach the Telegram bot. Please try again later.' },
+  'tg.regTitle': { uz: 'Ro‘yxatdan o‘tishni yakunlang', ru: 'Завершите регистрацию', en: 'Finish registration' },
+  'tg.regSub': { uz: 'Telegram tasdiqlandi. Hisob yarating — keyingi safar Telegram orqali kirasiz.', ru: 'Telegram подтверждён. Создайте аккаунт — в следующий раз войдёте через Telegram.', en: 'Telegram confirmed. Create your account — next time just sign in with Telegram.' },
+  'tg.verified': { uz: 'Telegram tasdiqlagan', ru: 'подтверждён Telegram', en: 'verified by Telegram' },
+  'tg.optional': { uz: 'ixtiyoriy', ru: 'необязательно', en: 'optional' },
+  'tg.regBtn': { uz: 'Hisob yaratish', ru: 'Создать аккаунт', en: 'Create account' },
+
   /* invoice */
   'inv.title': { uz: 'Hisob-faktura', ru: 'Счёт-фактура', en: 'Invoice' },
   'inv.date': { uz: 'Sana', ru: 'Дата', en: 'Date' },

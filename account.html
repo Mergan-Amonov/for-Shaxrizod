@@ -32,7 +32,8 @@
 (function () {
   var N = window.NAQSH, D = window.NAQSH_DATA, t = N.t;
   var q = new URLSearchParams(location.search);
-  var S = { authTab: 'email', smsSent: false, tab: q.get('tab') || 'bookings', filter: 'upcoming' };
+  var S = { authTab: 'email', smsSent: false, tab: q.get('tab') || 'bookings', filter: 'upcoming',
+    tg: { enabled: false, view: null, status: null, botLink: '', options: [], pending: null, busy: false } };
 
   function user() { return N.store.get('naqsh.user'); }
   function saveUser(u) { N.store.set('naqsh.user', u); }
@@ -64,6 +65,84 @@
     N.store.set('naqsh.bookings', list);
   }
 
+  /* ---------- Telegram bot orqali kirish (server: /api/auth/*) ---------- */
+  function api(method, path, body) {
+    return fetch(path, {
+      method: method, credentials: 'same-origin', cache: 'no-store',
+      headers: body ? { 'content-type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; });
+    });
+  }
+  // Server hisobini kabinetning mahalliy profili bilan bog'lash (bronlar tarixi hozircha brauzerda).
+  function adoptServer(su) {
+    var u = user();
+    var parts = String(su.name || '').trim().split(/\s+/);
+    if (!u || u.serverId !== su.id) {
+      u = { email: su.email || '', via: 'telegram', serverId: su.id, cards: [],
+        profile: { first: parts[0] || '', last: parts.slice(1).join(' '), phone: su.phone || '', country: 'UZ', lang: su.lang || N.lang, diet: '', allergens: '', kids: '' } };
+    } else {
+      u.email = su.email || u.email; u.profile.phone = su.phone || u.profile.phone;
+    }
+    saveUser(u);
+  }
+  function tgReset() { S.tg.view = null; S.tg.status = null; S.tg.options = []; S.tg.botLink = ''; }
+  function tgLoggedIn(su) {
+    tgReset(); S.tg.pending = null; adoptServer(su); N.toast(t('tg.ok'));
+    if (q.get('next') === 'booking') { location.href = 'booking.html'; return; }
+    draw();
+  }
+  var pollTimer = null;
+  function tgPoll() {
+    clearTimeout(pollTimer);
+    if (S.tg.view !== 'wait') return;
+    api('GET', '/api/auth/telegram/status').then(function (d) {
+      if (S.tg.view !== 'wait') return;
+      if (d.status === 'contact') { S.tg.view = 'pick'; S.tg.options = d.options || []; draw(); return; }
+      if (d.status === 'new' || d.status === 'started') {
+        if (d.botLink) S.tg.botLink = d.botLink;
+        if (d.status !== S.tg.status) { S.tg.status = d.status; draw(); }
+        pollTimer = setTimeout(tgPoll, 2000);
+        return;
+      }
+      tgReset(); N.toast(t('tg.expired')); draw();
+    }).catch(function () { pollTimer = setTimeout(tgPoll, 4000); });
+  }
+  function tgInit() {
+    api('GET', '/api/auth/me').then(function (me) {
+      S.tg.enabled = !!me.telegram;
+      var local = user();
+      if (me.user) adoptServer(me.user);
+      else if (local && local.serverId) N.store.del('naqsh.user'); // server sessiyasi tugagan
+      if (!me.user && me.pending) { S.tg.view = 'register'; S.tg.pending = me.pending; }
+      else if (!me.user && me.tgLogin) { S.tg.view = 'wait'; S.tg.status = null; tgPoll(); }
+      draw();
+    }).catch(function () { /* API yo'q (statik ko'rinish) — Telegram tugmasi ko'rsatilmaydi */ });
+  }
+  function tgView() {
+    var v = S.tg.view, back = '<p style="text-align:center;margin:18px 0 0"><button type="button" class="link" style="background:none;border-left:0;border-right:0;border-top:0" data-tg-cancel>' + t('tg.other') + '</button></p>';
+    var head = '<div class="auth-card panel"><div style="text-align:center"><span style="display:inline-grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#2a8bc9;color:#fff;margin-bottom:14px">' + N.icon('telegram') + '</span></div>';
+    if (v === 'pick') {
+      return head + '<h2 style="text-align:center">' + t('tg.title') + '</h2><p style="text-align:center">' + t('tg.pick') + '</p>' +
+        '<div class="tg-codes">' + S.tg.options.map(function (n) { return '<button type="button" class="tg-code" data-choice="' + n + '"' + (S.tg.busy ? ' disabled' : '') + '>' + n + '</button>'; }).join('') + '</div>' +
+        '<p style="font-size:.84rem;color:var(--muted);text-align:center;margin-top:14px">' + t('tg.pickNote') + '</p>' + back + '</div>';
+    }
+    if (v === 'register') {
+      var p = S.tg.pending || {};
+      return head + '<h2 style="text-align:center">' + t('tg.regTitle') + '</h2><p style="text-align:center;color:var(--muted)">' + t('tg.regSub') + '</p>' +
+        '<form id="tg-reg" novalidate>' +
+        field('r-name', t('f.name'), '<input id="r-name" name="name" required autocomplete="name" value="' + N.esc(p.name || '') + '">') +
+        '<div class="field"><label for="r-phone">' + t('f.phone') + ' · ' + t('tg.verified') + '</label><input id="r-phone" value="' + N.esc(p.phone || '') + '" readonly></div>' +
+        '<div class="field"><label for="r-email">' + t('f.email') + ' (' + t('tg.optional') + ')</label><input id="r-email" name="email" type="email" autocomplete="email"><span class="err">' + t('f.emailBad') + '</span></div>' +
+        '<button class="btn btn--navy btn--block" type="submit">' + t('tg.regBtn') + '</button></form>' + back + '</div>';
+    }
+    return head + '<h2 style="text-align:center">' + t('tg.title') + '</h2>' +
+      '<ol style="padding-left:20px;margin:0 0 20px">' + ['tg.step1', 'tg.step2', 'tg.step3'].map(function (k) { return '<li style="margin-bottom:6px">' + t(k) + '</li>'; }).join('') + '</ol>' +
+      '<a class="btn btn--tg btn--block" href="' + N.esc(S.tg.botLink) + '" target="_blank" rel="noopener">' + N.icon('telegram') + t('tg.open') + '</a>' +
+      '<p style="text-align:center;font-size:.88rem;color:var(--muted);margin-top:16px">' + t(S.tg.status === 'started' ? 'tg.started' : 'tg.waiting') + '</p>' + back + '</div>';
+  }
+
   /* ---------- auth view ---------- */
   function authView() {
     var tabs = [['email', 'acc.viaEmail'], ['sms', 'acc.viaSms']];
@@ -73,6 +152,7 @@
       : field('a-phone', t('f.phone'), '<input id="a-phone" name="phone" type="tel" autocomplete="tel" placeholder="+998 __ ___ __ __" required>') +
         (S.smsSent ? field('a-code', t('pay.otp'), '<input id="a-code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>') : '');
     return '<div class="auth-card panel"><h2 style="text-align:center">' + t('acc.welcome') + '</h2><p style="text-align:center;color:var(--muted)">' + t('acc.welcomeSub') + '</p>' +
+      (S.tg.enabled ? '<button class="btn btn--tg btn--block" type="button" data-tg-start style="margin-bottom:10px"' + (S.tg.busy ? ' disabled' : '') + '>' + N.icon('telegram') + t('tg.btn') + '</button>' : '') +
       '<div class="social-login"><button type="button" data-social="google">' + N.icon('google') + 'Google</button><button type="button" data-social="apple">' + N.icon('apple') + 'Apple</button></div>' +
       '<div class="divider">' + t('acc.or') + '</div>' +
       '<div class="auth-tabs" role="tablist">' + tabs.map(function (x) { return '<button type="button" role="tab" data-auth="' + x[0] + '" aria-selected="' + (S.authTab === x[0]) + '">' + t(x[1]) + '</button>'; }).join('') + '</div>' +
@@ -162,7 +242,21 @@
 
   /* ---------- render + events ---------- */
   function draw() {
-    document.getElementById('acc').innerHTML = user() ? dashView() : authView();
+    document.getElementById('acc').innerHTML = user() ? dashView() : S.tg.view ? tgView() : authView();
+    var tr = document.getElementById('tg-reg');
+    if (tr) tr.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var nm = tr.elements.name, em = tr.elements.email, bad = !nm.value.trim();
+      nm.closest('.field').classList.toggle('invalid', bad);
+      var emBad = !!em.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim());
+      em.closest('.field').classList.toggle('invalid', emBad);
+      if (bad || emBad) return;
+      api('POST', '/api/auth/register', { name: nm.value.trim(), email: em.value.trim(), lang: N.lang }).then(function (d) {
+        if (d.user) tgLoggedIn(d.user);
+        else if (d.error === 'no_telegram') { tgReset(); N.toast(t('tg.expired')); draw(); }
+        else N.toast(t('tg.error'));
+      }).catch(function () { N.toast(t('tg.error')); });
+    });
     document.getElementById('inv-print').textContent = t('inv.download');
     document.getElementById('inv-close').textContent = t('acc.close');
     var a = document.getElementById('auth');
@@ -207,11 +301,36 @@
       N.store.set('naqsh.bookings', list); N.toast(t('acc.cancelled')); draw(); return;
     }
     if ((el = e.target.closest('[data-rmcard]'))) { var u = user(); u.cards = u.cards.filter(function (c) { return c.id !== el.getAttribute('data-rmcard'); }); saveUser(u); draw(); return; }
-    if (e.target.closest('[data-logout]')) { N.store.del('naqsh.user'); draw(); }
+    if (e.target.closest('[data-tg-start]')) {
+      S.tg.busy = true; draw();
+      api('POST', '/api/auth/telegram/start', { lang: N.lang }).then(function (d) {
+        S.tg.busy = false;
+        if (d.ok) { S.tg.view = 'wait'; S.tg.status = 'new'; S.tg.botLink = d.botLink; draw(); pollTimer = setTimeout(tgPoll, 2000); }
+        else { N.toast(t('tg.error')); draw(); }
+      }).catch(function () { S.tg.busy = false; N.toast(t('tg.error')); draw(); });
+      return;
+    }
+    if ((el = e.target.closest('[data-choice]'))) {
+      S.tg.busy = true; draw();
+      api('POST', '/api/auth/telegram/confirm', { choice: Number(el.getAttribute('data-choice')) }).then(function (d) {
+        S.tg.busy = false;
+        if (d.result === 'login') return tgLoggedIn(d.user);
+        if (d.result === 'register') { S.tg.view = 'register'; S.tg.pending = d.pending; draw(); return; }
+        tgReset(); N.toast(t(d.result === 'failed' ? 'tg.wrong' : 'tg.expired')); draw();
+      }).catch(function () { S.tg.busy = false; N.toast(t('tg.error')); draw(); });
+      return;
+    }
+    if (e.target.closest('[data-tg-cancel]')) { clearTimeout(pollTimer); tgReset(); draw(); return; }
+    if (e.target.closest('[data-logout]')) {
+      var lu = user();
+      if (lu && lu.serverId) api('POST', '/api/auth/logout', {}).catch(function () {});
+      N.store.del('naqsh.user'); draw();
+    }
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeInvoice(); });
 
   N.onRender(draw);
+  tgInit();
 })();
 </script>
 </body>
