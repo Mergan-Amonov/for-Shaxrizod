@@ -77,8 +77,11 @@ test('Telegram bot orqali kirish: telefon → uchta raqamdan mosini tanlash', { 
   async function begin(c, tgId, phone, lang = 'uz') {
     let r = await c.post('/api/auth/telegram/start', { lang });
     assert.equal(r.status, 200);
+    assert.match(r.json.qrSvg, /^<svg/);
     r = await c.get('/api/auth/telegram/status');
     assert.equal(r.json.status, 'new');
+    assert.equal(r.json.qrSvg, undefined);
+    assert.match((await c.get('/api/auth/telegram/status?qr=1')).json.qrSvg, /^<svg/);
     assert.match(r.json.botLink, /^https:\/\/t\.me\/naqsh_test_bot\?start=/);
     const token = /\?start=([A-Za-z0-9_-]+)/.exec(r.json.botLink)[1];
     const from = { id: tgId, first_name: 'Shaxrizod', last_name: 'Karimov', username: 'shaxrizod' };
