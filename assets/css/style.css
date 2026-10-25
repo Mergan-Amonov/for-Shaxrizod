@@ -340,9 +340,6 @@ body.has-hero .site-header:not(.is-solid){background:linear-gradient(180deg,rgba
 .auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:22px}
 .auth-tabs button{flex:1;background:none;border:0;padding:12px;font-size:.74rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent}
 .auth-tabs button[aria-selected="true"]{color:var(--navy-900);border-color:var(--gold)}
-.social-login{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-.social-login button{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:var(--radius);min-height:48px;font-weight:700;font-size:.9rem}
-.social-login svg{width:18px;height:18px}
 .tg-codes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
 .tg-code{min-height:84px;border:2px solid var(--line);border-radius:var(--radius-lg);background:#fff;font-family:var(--sans);font-size:2.2rem;font-weight:800;color:var(--navy-900);transition:border-color .2s,background .2s}
 .tg-code:hover{border-color:#2a8bc9;background:#eef6fc}

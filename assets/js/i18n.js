@@ -279,7 +279,6 @@ window.NAQSH_I18N = {
   'acc.sendCode': { uz: 'Kod yuborish', ru: 'Отправить код', en: 'Send code' },
   'acc.login': { uz: 'Kirish', ru: 'Войти', en: 'Sign in' },
   'acc.terms': { uz: 'Kirish orqali siz xizmat ko‘rsatish shartlari va maxfiylik siyosatiga rozilik bildirasiz.', ru: 'Входя, вы соглашаетесь с условиями обслуживания и политикой конфиденциальности.', en: 'By signing in you agree to the terms of service and privacy policy.' },
-  'acc.socialDemo': { uz: 'Demo: haqiqiy Google/Apple avtorizatsiyasi backend bosqichida ulanadi', ru: 'Демо: реальная авторизация Google/Apple подключается на этапе backend', en: 'Demo: real Google/Apple sign-in is connected in the backend phase' },
   'acc.guest': { uz: 'Mehmon', ru: 'Гость', en: 'Guest' },
   'acc.bookings': { uz: 'Bronlar', ru: 'Бронирования', en: 'Bookings' },
   'acc.profile': { uz: 'Profil', ru: 'Профиль', en: 'Profile' },
