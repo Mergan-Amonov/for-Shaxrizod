@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kontaktlar — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Manzil, xarita, telefon, email, WhatsApp va Telegram orqali tezkor aloqa.">
+<link rel="canonical" href="https://naqsh-hotel.uz/contacts.html">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-title="nav.contacts" data-desc="con.metaDesc">
+<header id="site-header" class="site-header"></header>
+<main id="main" class="page-plain">
+  <section class="section" style="padding-top:20px">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="nav.contacts"></span>
+        <h1 data-i18n="con.h1"></h1>
+        <p class="lead" data-i18n="con.lead"></p>
+      </div>
+      <div class="grid grid-4 one-mobile" id="con-cards"></div>
+    </div>
+  </section>
+  <section class="section section--sand">
+    <div class="container split" style="align-items:stretch">
+      <div id="map-wrap"></div>
+      <div class="panel" style="margin:0">
+        <h3 data-i18n="con.formH"></h3>
+        <form id="con-form" novalidate>
+          <div class="form-row">
+            <div class="field"><label for="c-name" data-i18n="f.name"></label><input id="c-name" name="name" required autocomplete="name"><span class="err" data-i18n="f.req"></span></div>
+            <div class="field"><label for="c-phone" data-i18n="f.phone"></label><input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+998 __ ___ __ __"><span class="err" data-i18n="f.req"></span></div>
+          </div>
+          <div class="field"><label for="c-email" data-i18n="f.email"></label><input id="c-email" name="email" type="email" autocomplete="email"></div>
+          <div class="field"><label for="c-msg" data-i18n="f.message"></label><textarea id="c-msg" name="msg" required></textarea><span class="err" data-i18n="f.req"></span></div>
+          <label class="checkbox"><input type="checkbox" name="consent" required><span data-i18n-html="f.consent"></span></label>
+          <button class="btn btn--navy btn--block" type="submit" data-i18n="f.send"></button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, c = window.NAQSH_DATA.contact;
+  N.onRender(function () {
+    var cards = [
+      ['pin', 'con.address', '<p>' + N.esc(N.L(c.address)) + '</p><a class="link" style="margin-top:12px;font-size:.7rem" href="' + c.mapLink + '" target="_blank" rel="noopener">' + N.t('con.route') + '</a>'],
+      ['phone', 'con.phone', '<a href="' + c.phoneHref + '">' + c.phone + '</a>'],
+      ['mail', 'con.email', '<a href="mailto:' + c.email + '">' + c.email + '</a>'],
+      ['chat', 'con.messengers', '<div class="cta-actions" style="margin-top:6px"><a class="btn btn--wa btn--sm" href="' + c.whatsapp + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn btn--tg btn--sm" href="' + c.telegram + '" target="_blank" rel="noopener">Telegram</a></div>']
+    ];
+    document.getElementById('con-cards').innerHTML = cards.map(function (k) { return '<div class="contact-card reveal">' + N.icon(k[0]) + '<h4>' + N.t(k[1]) + '</h4>' + k[2] + '</div>'; }).join('');
+    if (!document.querySelector('#map-wrap iframe'))
+      document.getElementById('map-wrap').innerHTML = '<iframe class="map" title="Map" loading="lazy" src="' + c.mapEmbed + '"></iframe>';
+  });
+  document.getElementById('con-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = e.target, ok = true;
+    ['name', 'phone', 'msg'].forEach(function (n) { var el = f.elements[n], bad = !el.value.trim(); el.closest('.field').classList.toggle('invalid', bad); if (bad) ok = false; });
+    if (!f.elements.consent.checked) { N.toast(N.t('f.consentReq')); ok = false; }
+    if (!ok) return;
+    f.reset(); N.toast(N.t('con.sent'));
+  });
+})();
+</script>
+</body>
+</html>

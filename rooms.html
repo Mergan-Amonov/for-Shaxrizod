@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xonalar — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Standard, Deluxe, Family va Heritage Suite xonalari: maydon, sig‘im, qulayliklar va QQS bilan yakuniy narx.">
+<link rel="canonical" href="https://naqsh-hotel.uz/rooms.html">
+<meta property="og:title" content="Rooms & Suites — NAQSH Heritage & Smart Hotel">
+<meta property="og:image" content="https://naqsh-hotel.uz/assets/img/suite-1.webp">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="has-hero" data-title="nav.rooms" data-desc="rooms.metaDesc">
+<header id="site-header" class="site-header"></header>
+<main id="main">
+  <section class="page-hero">
+    <img src="assets/img/suite-1.webp" alt="" width="1920" height="1280" fetchpriority="high">
+    <div class="container">
+      <div class="crumbs"><a href="index.html" data-i18n="nav.home"></a> / <span data-i18n="nav.rooms"></span></div>
+      <h1 data-i18n="rooms.h1"></h1>
+      <p data-i18n="rooms.lead"></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" id="room-list"></div>
+  </section>
+
+  <section class="section section--sand">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow" data-i18n="cmp.eyebrow"></span>
+        <h2 data-i18n="cmp.h2"></h2>
+      </div>
+      <div class="table-wrap reveal"><table class="table" id="cmp"></table></div>
+      <div class="note"><span data-icon="info"></span><span data-i18n="price.vatNote"></span></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, D = window.NAQSH_DATA;
+  N.onRender(function () {
+    document.getElementById('room-list').innerHTML = D.rooms.map(function (r) {
+      return '<article class="room-row reveal">' +
+        '<a class="room-row-media" href="room.html?type=' + r.id + '"><img src="' + N.img(r.img) + '" alt="' + N.esc(N.L(r.name)) + '" loading="lazy" width="1920" height="1280"><span class="tag">' + r.count + ' ' + N.t('rooms.units') + '</span></a>' +
+        '<div class="room-row-body"><span class="eyebrow">' + N.t('rooms.type') + '</span><h2>' + N.esc(N.L(r.name)) + '</h2>' +
+        '<div class="room-meta"><span>' + N.icon('area') + r.area + ' m²</span><span>' + N.icon('users') + N.t('rooms.upTo', { n: r.guests }) + '</span><span>' + N.icon('bed') + N.esc(N.L(r.bed)) + '</span></div>' +
+        '<p>' + N.esc(N.L(r.short)) + '</p>' +
+        '<div class="chips">' + r.amenities.slice(0, 5).map(function (a) { return '<span class="chip">' + N.icon(a) + N.esc(N.L(D.amenityLabels[a])) + '</span>'; }).join('') + '</div>' +
+        '<div class="actions"><div class="price"><small>' + N.t('price.from') + '</small><b>' + N.money(r.price) + '</b><em>' + N.t('price.perNightVat') + '</em></div>' +
+        '<div class="cta-actions"><a class="btn btn--ghost btn--sm" href="room.html?type=' + r.id + '">' + N.t('rooms.details') + '</a><a class="btn btn--gold btn--sm" href="booking.html?room=' + r.id + '&lang=' + N.lang + '">' + N.t('nav.book') + '</a></div></div>' +
+        '</div></article>';
+    }).join('');
+
+    var rows = [
+      ['cmp.area', function (r) { return r.area + ' m²'; }],
+      ['cmp.guests', function (r) { return N.t('rooms.upTo', { n: r.guests }); }],
+      ['cmp.bed', function (r) { return N.esc(N.L(r.bed)); }],
+      ['cmp.count', function (r) { return r.count; }],
+      ['cmp.price', function (r) { return '<b>' + N.money(r.price) + '</b>'; }]
+    ];
+    document.getElementById('cmp').innerHTML =
+      '<thead><tr><th></th>' + D.rooms.map(function (r) { return '<th>' + N.esc(N.L(r.name)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (row) { return '<tr><th>' + N.t(row[0]) + '</th>' + D.rooms.map(function (r) { return '<td>' + row[1](r) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody>';
+  });
+})();
+</script>
+</body>
+</html>

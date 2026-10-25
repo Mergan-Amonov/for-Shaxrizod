@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /booking.html
+Disallow: /account.html
+
+Sitemap: https://naqsh-hotel.uz/sitemap.xml

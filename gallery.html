@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galereya — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Interyer, eksteryer, lobbi, xonalar va umumiy hududlar fotosuratlari.">
+<link rel="canonical" href="https://naqsh-hotel.uz/gallery.html">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-title="nav.gallery" data-desc="gal.metaDesc">
+<header id="site-header" class="site-header"></header>
+<main id="main" class="page-plain">
+  <section class="section" style="padding-top:20px">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow" data-i18n="nav.gallery"></span>
+        <h1 data-i18n="gal.h1"></h1>
+        <p class="lead" data-i18n="gal.lead"></p>
+      </div>
+      <div class="filters" id="filters" role="group"></div>
+      <div class="masonry" id="masonry"></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, D = window.NAQSH_DATA;
+  var CATS = ['all', 'exterior', 'lobby', 'rooms', 'dining', 'common', 'heritage'];
+  var cur = new URLSearchParams(location.search).get('cat') || 'all';
+  function items() { return D.gallery.filter(function (g) { return cur === 'all' || g.cat === cur; }).map(function (g) { return { img: g.img, cap: N.t('gal.' + g.cat) }; }); }
+  function draw() {
+    document.getElementById('filters').innerHTML = CATS.map(function (c) { return '<button type="button" data-cat="' + c + '" aria-pressed="' + (c === cur) + '">' + N.t('gal.' + c) + '</button>'; }).join('');
+    var list = items();
+    document.getElementById('masonry').innerHTML = list.map(function (g, i) {
+      return '<figure data-i="' + i + '" tabindex="0"><img src="' + N.img(g.img, true) + '" alt="' + N.esc(g.cap) + '" loading="lazy"><figcaption>' + N.esc(g.cap) + '</figcaption></figure>';
+    }).join('');
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cat]'); if (b) { cur = b.getAttribute('data-cat'); draw(); return; }
+    var f = e.target.closest('#masonry figure'); if (f) N.openLightbox(items(), +f.getAttribute('data-i'));
+  });
+  document.addEventListener('keydown', function (e) {
+    var f = e.target.closest && e.target.closest('#masonry figure');
+    if (f && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); N.openLightbox(items(), +f.getAttribute('data-i')); }
+  });
+  N.onRender(draw);
+})();
+</script>
+</body>
+</html>

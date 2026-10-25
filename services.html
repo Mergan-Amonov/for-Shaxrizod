@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xizmatlar — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="O‘zbek va xalqaro nonushta, coworking, tezkor Wi‑Fi, 24/7 resepshn, kir yuvish, aeroport transferi va milliy hunarmandchilik mini-do‘koni.">
+<link rel="canonical" href="https://naqsh-hotel.uz/services.html">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="has-hero" data-title="nav.services" data-desc="svc.metaDesc">
+<header id="site-header" class="site-header"></header>
+<main id="main">
+  <section class="page-hero">
+    <img src="assets/img/breakfast.webp" alt="" width="1920" height="1280" fetchpriority="high">
+    <div class="container">
+      <div class="crumbs"><a href="index.html" data-i18n="nav.home"></a> / <span data-i18n="nav.services"></span></div>
+      <h1 data-i18n="svc.h1"></h1>
+      <p data-i18n="svc.lead"></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" id="svc-list"></div>
+  </section>
+
+  <section class="section section--sand">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow" data-i18n="svc.allEyebrow"></span>
+        <h2 data-i18n="svc.allH2"></h2>
+      </div>
+      <div class="grid grid-4" id="amen-grid"></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH;
+  var SVC = [
+    { id: 'breakfast', img: 'breakfast', key: 's1', items: 3 },
+    { id: 'cowork', img: 'cowork', key: 's2', items: 3 },
+    { id: 'reception', img: 'lobby', key: 's3', items: 3 },
+    { id: 'transfer', img: 'exterior-night', key: 's4', items: 3 },
+    { id: 'crafts', img: 'tiles', key: 's5', items: 3 }
+  ];
+  var AMEN = [['wifi', 'a1'], ['clock', 'a2'], ['laundry', 'a3'], ['car', 'a4'], ['kids', 'a5'], ['breakfast', 'a6'], ['shield', 'a7'], ['card', 'a8']];
+  N.onRender(function () {
+    document.getElementById('svc-list').innerHTML = SVC.map(function (s) {
+      var li = ''; for (var i = 1; i <= s.items; i++) li += '<li>' + N.icon('check') + N.t('svc.' + s.key + '.l' + i) + '</li>';
+      return '<article class="service reveal" id="' + s.id + '"><div class="service-media"><img src="' + N.img(s.img, true) + '" alt="" loading="lazy" width="800" height="533"></div>' +
+        '<div class="service-body"><span class="eyebrow">' + N.t('svc.' + s.key + '.e') + '</span><h2>' + N.t('svc.' + s.key + '.t') + '</h2><p>' + N.t('svc.' + s.key + '.p') + '</p><ul>' + li + '</ul></div></article>';
+    }).join('');
+    document.getElementById('amen-grid').innerHTML = AMEN.map(function (a) {
+      return '<div class="amenity-tile reveal">' + N.icon(a[0]) + '<h4>' + N.t('svc.' + a[1] + '.t') + '</h4><p>' + N.t('svc.' + a[1] + '.p') + '</p></div>';
+    }).join('');
+    if (location.hash) { var el = document.querySelector(location.hash); if (el) setTimeout(function () { el.scrollIntoView(); }, 50); }
+  });
+})();
+</script>
+</body>
+</html>

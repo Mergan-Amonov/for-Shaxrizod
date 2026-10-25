@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Qoidalar va siyosat — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Bronni bekor qilish va pulni qaytarish qoidalari, maxfiylik siyosati, xizmat ko‘rsatish shartlari va mehmonxona qoidalari.">
+<link rel="canonical" href="https://naqsh-hotel.uz/policies.html">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-title="nav.policies" data-desc="pol.metaDesc">
+<header id="site-header" class="site-header"></header>
+<main id="main" class="page-plain">
+  <section class="section" style="padding-top:20px">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="nav.policies"></span>
+        <h1 data-i18n="pol.h1"></h1>
+        <p class="lead" data-i18n="pol.updated"></p>
+      </div>
+      <div class="policy-layout">
+        <nav class="toc" aria-label="Contents">
+          <a href="#cancellation" data-i18n="pol.cancel"></a>
+          <a href="#privacy" data-i18n="pol.privacy"></a>
+          <a href="#terms" data-i18n="pol.terms"></a>
+          <a href="#house" data-i18n="pol.house"></a>
+        </nav>
+        <div class="prose">
+          <section id="cancellation"><h2 data-i18n="pol.cancel"></h2><div data-i18n-html="pol.cancel.body"></div></section>
+          <section id="privacy"><h2 data-i18n="pol.privacy"></h2><div data-i18n-html="pol.privacy.body"></div></section>
+          <section id="terms"><h2 data-i18n="pol.terms"></h2><div data-i18n-html="pol.terms.body"></div></section>
+          <section id="house" style="border:0"><h2 data-i18n="pol.house"></h2><div data-i18n-html="pol.house.body"></div></section>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var links = document.querySelectorAll('.toc a');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle('is-active', a.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('.prose section').forEach(function (s) { io.observe(s); });
+  }
+  window.NAQSH.onRender(function () { if (location.hash) { var el = document.querySelector(location.hash); if (el) setTimeout(function () { el.scrollIntoView(); }, 50); } });
+})();
+</script>
+</body>
+</html>

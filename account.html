@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shaxsiy kabinet — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Bronlar tarixi, profil, saqlangan kartalar va hisob-fakturalar.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-title="nav.account">
+<header id="site-header" class="site-header"></header>
+<main id="main" class="page-plain">
+  <section class="section" style="padding-top:12px">
+    <div class="container">
+      <p class="demo-banner" style="border-radius:var(--radius);margin-bottom:28px" data-i18n="demo.account"></p>
+      <div id="acc"></div>
+    </div>
+  </section>
+</main>
+<div class="modal" id="inv-modal" role="dialog" aria-modal="true"><div class="modal-box"><div class="modal-actions"><button class="btn btn--gold btn--sm" type="button" id="inv-print"></button><button class="btn btn--ghost btn--sm" type="button" id="inv-close"></button></div><div class="invoice" id="invoice"></div></div></div>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, D = window.NAQSH_DATA, t = N.t;
+  var q = new URLSearchParams(location.search);
+  var S = { authTab: 'email', smsSent: false, tab: q.get('tab') || 'bookings', filter: 'upcoming' };
+
+  function user() { return N.store.get('naqsh.user'); }
+  function saveUser(u) { N.store.set('naqsh.user', u); }
+  function bookings() {
+    var list = N.store.get('naqsh.bookings', []), td = N.today(), changed = false;
+    list.forEach(function (b) { if (b.status === 'upcoming' && b.out < td) { b.status = 'past'; changed = true; } });
+    if (changed) N.store.set('naqsh.bookings', list);
+    return list;
+  }
+  function field(id, label, input) { return '<div class="field"><label for="' + id + '">' + label + '</label>' + input + '<span class="err">' + t('f.req') + '</span></div>'; }
+
+  /* Demo sign-in: no real auth; creates a local session. */
+  function signIn(email, via) {
+    var u = user() || { email: email, via: via, profile: { first: '', last: '', phone: '', country: 'UZ', lang: N.lang, diet: '', allergens: '', kids: '' }, cards: [] };
+    u.email = email || u.email; u.via = via; saveUser(u);
+    if (!N.store.get('naqsh.seeded')) { seedDemo(u.email); N.store.set('naqsh.seeded', true); }
+    if (q.get('next') === 'booking') { location.href = 'booking.html'; return; }
+    draw();
+  }
+  function seedDemo(email) {
+    var list = N.store.get('naqsh.bookings', []);
+    function mk(room, inOff, n, status, code) {
+      var r = N.room(room), a = N.addDays(N.today(), inOff), b = N.addDays(a, n), qq = N.quote(r, a, b, []);
+      qq.discount = 0; qq.total = qq.roomTotal; qq.vat = Math.round(qq.total * D.vatRate / (1 + D.vatRate)); qq.net = qq.total - qq.vat;
+      return { code: code, room: room, in: a, out: b, adults: 2, children: 0, extras: [], guest: { first: 'Demo', last: 'Guest', email: email, phone: '+998 90 000 00 00' },
+        nights: n, roomTotal: qq.roomTotal, discount: 0, extrasTotal: 0, total: qq.total, vat: qq.vat, net: qq.net, method: 'visa', last4: '4242', status: status, created: new Date().toISOString() };
+    }
+    list.push(mk('deluxe', -60, 3, 'past', 'NQ-DEMO01'), mk('standard', -20, 2, 'cancelled', 'NQ-DEMO02'));
+    N.store.set('naqsh.bookings', list);
+  }
+
+  /* ---------- auth view ---------- */
+  function authView() {
+    var tabs = [['email', 'acc.viaEmail'], ['sms', 'acc.viaSms']];
+    var body = S.authTab === 'email'
+      ? field('a-email', t('f.email'), '<input id="a-email" name="email" type="email" autocomplete="email" required>') +
+        field('a-pass', t('acc.password'), '<input id="a-pass" name="pass" type="password" autocomplete="current-password" minlength="6" required>')
+      : field('a-phone', t('f.phone'), '<input id="a-phone" name="phone" type="tel" autocomplete="tel" placeholder="+998 __ ___ __ __" required>') +
+        (S.smsSent ? field('a-code', t('pay.otp'), '<input id="a-code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>') : '');
+    return '<div class="auth-card panel"><h2 style="text-align:center">' + t('acc.welcome') + '</h2><p style="text-align:center;color:var(--muted)">' + t('acc.welcomeSub') + '</p>' +
+      '<div class="social-login"><button type="button" data-social="google">' + N.icon('google') + 'Google</button><button type="button" data-social="apple">' + N.icon('apple') + 'Apple</button></div>' +
+      '<div class="divider">' + t('acc.or') + '</div>' +
+      '<div class="auth-tabs" role="tablist">' + tabs.map(function (x) { return '<button type="button" role="tab" data-auth="' + x[0] + '" aria-selected="' + (S.authTab === x[0]) + '">' + t(x[1]) + '</button>'; }).join('') + '</div>' +
+      '<form id="auth" novalidate>' + body + '<button class="btn btn--navy btn--block" type="submit">' + (S.authTab === 'sms' && !S.smsSent ? t('acc.sendCode') : t('acc.login')) + '</button></form>' +
+      '<p style="font-size:.8rem;color:var(--muted);text-align:center;margin-top:16px">' + t('acc.terms') + '</p></div>';
+  }
+
+  /* ---------- dashboard ---------- */
+  function bookingItem(b) {
+    var r = N.room(b.room);
+    var acts = '<button class="btn btn--ghost btn--sm" type="button" data-inv="' + b.code + '">' + t('acc.invoice') + '</button>';
+    if (b.status === 'upcoming') acts += '<button class="btn btn--sm" style="color:var(--danger)" type="button" data-cancel="' + b.code + '">' + t('acc.cancel') + '</button>';
+    return '<div class="bk"><img src="' + N.img(r.img, true) + '" alt="" loading="lazy"><div><span class="status status--' + b.status + '">' + t('st.' + b.status) + '</span>' +
+      '<h4>' + N.esc(N.L(r.name)) + '</h4><small>' + N.fmtDate(b.in) + ' — ' + N.fmtDate(b.out) + ' · ' + t('q.nights', { n: b.nights }) + '</small>' +
+      '<small>' + t('bk.code') + ': <b>' + b.code + '</b> · ' + N.money(b.total) + '</small></div><div class="bk-actions">' + acts + '</div></div>';
+  }
+  function tabBookings() {
+    var list = bookings(), f = S.filter;
+    var shown = list.filter(function (b) { return b.status === f; });
+    return '<h2>' + t('acc.bookings') + '</h2><div class="sub-tabs">' + ['upcoming', 'past', 'cancelled'].map(function (s) {
+      var n = list.filter(function (b) { return b.status === s; }).length;
+      return '<button type="button" data-filter="' + s + '" aria-pressed="' + (f === s) + '">' + t('st.' + s) + ' (' + n + ')</button>';
+    }).join('') + '</div>' +
+      (shown.length ? shown.map(bookingItem).join('') : '<div class="empty">' + t('acc.empty') + '<br><br><a class="btn btn--gold btn--sm" href="booking.html">' + t('nav.book') + '</a></div>');
+  }
+  function tabProfile() {
+    var u = user(), p = u.profile;
+    var langs = [['uz', "O‘zbekcha"], ['ru', 'Русский'], ['en', 'English']].map(function (l) { return '<option value="' + l[0] + '"' + (p.lang === l[0] ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('');
+    return '<h2>' + t('acc.profile') + '</h2><form id="profile" class="panel" novalidate>' +
+      '<div class="form-row">' + field('p-first', t('f.first'), '<input id="p-first" name="first" value="' + N.esc(p.first) + '" autocomplete="given-name">') +
+      field('p-last', t('f.last'), '<input id="p-last" name="last" value="' + N.esc(p.last) + '" autocomplete="family-name">') + '</div>' +
+      '<div class="form-row">' + field('p-email', t('f.email'), '<input id="p-email" name="email" type="email" value="' + N.esc(u.email || '') + '">') +
+      field('p-phone', t('f.phone'), '<input id="p-phone" name="phone" type="tel" value="' + N.esc(p.phone) + '">') + '</div>' +
+      field('p-lang', t('acc.langPref'), '<select id="p-lang" name="lang">' + langs + '</select>') +
+      '<h3 style="margin-top:24px">' + t('acc.special') + '</h3>' +
+      field('p-diet', t('f.diet'), '<input id="p-diet" name="diet" value="' + N.esc(p.diet) + '" placeholder="' + N.esc(t('f.dietPh')) + '">') +
+      field('p-all', t('acc.allergens'), '<input id="p-all" name="allergens" value="' + N.esc(p.allergens) + '" placeholder="' + N.esc(t('acc.allergensPh')) + '">') +
+      field('p-kids', t('acc.kids'), '<input id="p-kids" name="kids" value="' + N.esc(p.kids) + '" placeholder="' + N.esc(t('acc.kidsPh')) + '">') +
+      '<button class="btn btn--navy" type="submit">' + t('acc.save') + '</button></form>';
+  }
+  function tabCards() {
+    var cards = user().cards || [];
+    return '<h2>' + t('acc.cards') + '</h2><div class="panel">' +
+      (cards.length ? cards.map(function (c) { return '<div class="saved-card"><span>' + N.icon('card') + '</span><b style="flex:1">' + c.brand.toUpperCase() + ' •••• ' + c.last4 + '</b><small>' + c.exp + '</small><button class="btn btn--sm" style="color:var(--danger)" type="button" data-rmcard="' + c.id + '">' + t('acc.remove') + '</button></div>'; }).join('')
+        : '<div class="empty">' + t('acc.noCards') + '</div>') +
+      '<div class="note"><span>' + N.icon('lock') + '</span><span>' + t('acc.cardsNote') + '</span></div></div>';
+  }
+  function tabInvoices() {
+    var list = bookings().filter(function (b) { return b.status !== 'cancelled'; });
+    return '<h2>' + t('acc.invoices') + '</h2>' + (list.length ? '<div class="table-wrap"><table class="table"><thead><tr><th>№</th><th>' + t('inv.date') + '</th><th>' + t('bw.room') + '</th><th>' + t('q.total') + '</th><th></th></tr></thead><tbody>' +
+      list.map(function (b) { return '<tr><td>INV-' + b.code.slice(3) + '</td><td>' + N.fmtDate(b.created.slice(0, 10)) + '</td><td>' + N.esc(N.L(N.room(b.room).name)) + '</td><td>' + N.money(b.total) + '</td><td><button class="btn btn--ghost btn--sm" type="button" data-inv="' + b.code + '">PDF</button></td></tr>'; }).join('') +
+      '</tbody></table></div>' : '<div class="empty">' + t('acc.empty') + '</div>');
+  }
+
+  function dashView() {
+    var u = user(), name = (u.profile.first || u.email || 'G');
+    var tabs = [['bookings', 'calendar', 'acc.bookings'], ['profile', 'user', 'acc.profile'], ['cards', 'card', 'acc.cards'], ['invoices', 'file', 'acc.invoices']];
+    var content = { bookings: tabBookings, profile: tabProfile, cards: tabCards, invoices: tabInvoices }[S.tab] || tabBookings;
+    return '<div class="dash"><nav class="dash-nav" role="tablist"><div class="dash-user"><div class="avatar">' + N.esc(name.charAt(0).toUpperCase()) + '</div><b>' + N.esc([u.profile.first, u.profile.last].join(' ').trim() || t('acc.guest')) + '</b><small>' + N.esc(u.email || u.profile.phone || '') + '</small></div>' +
+      tabs.map(function (x) { return '<button type="button" role="tab" data-tab="' + x[0] + '" aria-selected="' + (S.tab === x[0]) + '">' + N.icon(x[1]) + t(x[2]) + '</button>'; }).join('') +
+      '<button type="button" data-logout>' + N.icon('logout') + t('acc.logout') + '</button></nav><div>' + content() + '</div></div>';
+  }
+
+  /* ---------- invoice ---------- */
+  function showInvoice(code) {
+    var b = bookings().filter(function (x) { return x.code === code; })[0]; if (!b) return;
+    var r = N.room(b.room), c = D.contact;
+    var rows = '<tr><td>' + N.esc(N.L(r.name)) + ' — ' + N.fmtDate(b.in) + ' — ' + N.fmtDate(b.out) + '</td><td>' + b.nights + '</td><td>' + N.money(r.price) + '</td><td>' + N.money(b.roomTotal) + '</td></tr>';
+    if (b.discount) rows += '<tr><td>' + t('q.early') + '</td><td>1</td><td></td><td>−' + N.money(b.discount) + '</td></tr>';
+    (b.extras || []).forEach(function (id) { var x = D.extras.filter(function (e) { return e.id === id; })[0]; rows += '<tr><td>' + N.esc(N.L(x.name)) + '</td><td>1</td><td>' + N.money(x.price) + '</td><td>' + N.money(x.price) + '</td></tr>'; });
+    document.getElementById('invoice').innerHTML =
+      '<div class="inv-head"><div><h2>' + t('inv.title') + '</h2><p style="margin:0;color:var(--muted)">№ INV-' + b.code.slice(3) + ' · ' + N.fmtDate(b.created.slice(0, 10)) + '</p></div><img src="assets/img/logo-sm.png" alt="NAQSH"></div>' +
+      '<div class="inv-meta"><div><b>' + t('inv.seller') + '</b>' + t('inv.company') + '<br>' + N.esc(N.L(c.address)) + '<br>' + t('inv.tin') + ': ___________<br>' + c.phone + '</div>' +
+      '<div><b>' + t('inv.buyer') + '</b>' + N.esc(b.guest.first + ' ' + b.guest.last) + '<br>' + N.esc(b.guest.email) + '<br>' + N.esc(b.guest.phone || '') + '<br>' + t('bk.code') + ': ' + b.code + '</div></div>' +
+      '<table class="table"><thead><tr><th>' + t('inv.item') + '</th><th>' + t('inv.qty') + '</th><th>' + t('inv.price') + '</th><th>' + t('inv.sum') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="inv-total"><table><tr><td>' + t('q.net') + '</td><td>' + N.money(b.net) + '</td></tr><tr><td>' + t('q.vat') + '</td><td>' + N.money(b.vat) + '</td></tr><tr><td>' + t('q.total') + '</td><td>' + N.money(b.total) + '</td></tr></table></div>' +
+      '<p class="inv-foot">' + t('inv.paidBy', { m: b.method.toUpperCase() + ' •••• ' + b.last4 }) + (b.status === 'cancelled' ? ' · ' + t('st.cancelled') : '') + '<br>' + t('inv.note') + '</p>';
+    document.getElementById('inv-modal').classList.add('is-open');
+  }
+  function closeInvoice() { document.getElementById('inv-modal').classList.remove('is-open'); }
+  document.getElementById('inv-close').addEventListener('click', closeInvoice);
+  document.getElementById('inv-modal').addEventListener('click', function (e) { if (e.target.id === 'inv-modal') closeInvoice(); });
+  document.getElementById('inv-print').addEventListener('click', function () {
+    document.body.classList.add('printing'); window.print();
+    setTimeout(function () { document.body.classList.remove('printing'); }, 500);
+  });
+
+  /* ---------- render + events ---------- */
+  function draw() {
+    document.getElementById('acc').innerHTML = user() ? dashView() : authView();
+    document.getElementById('inv-print').textContent = t('inv.download');
+    document.getElementById('inv-close').textContent = t('acc.close');
+    var a = document.getElementById('auth');
+    if (a) a.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (S.authTab === 'email') {
+        var em = a.elements.email, pw = a.elements.pass, bad = false;
+        em.closest('.field').classList.toggle('invalid', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value)); bad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value);
+        pw.closest('.field').classList.toggle('invalid', pw.value.length < 6); bad = bad || pw.value.length < 6;
+        if (!bad) signIn(em.value.trim(), 'email');
+      } else {
+        var ph = a.elements.phone;
+        if (ph.value.replace(/\D/g, '').length < 9) { ph.closest('.field').classList.add('invalid'); return; }
+        if (!S.smsSent) { S.smsSent = true; var v = ph.value; draw(); document.getElementById('a-phone').value = v; document.getElementById('a-code').focus(); N.toast(t('pay.otpSent')); return; }
+        if (!/^\d{6}$/.test(a.elements.code.value)) { a.elements.code.closest('.field').classList.add('invalid'); return; }
+        var u0 = user(); signIn('', 'sms'); var u = user(); u.profile.phone = ph.value; saveUser(u); if (!u0) draw();
+      }
+    });
+    var p = document.getElementById('profile');
+    if (p) p.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var u = user();
+      ['first', 'last', 'phone', 'lang', 'diet', 'allergens', 'kids'].forEach(function (k) { u.profile[k] = p.elements[k].value.trim(); });
+      u.email = p.elements.email.value.trim(); saveUser(u);
+      N.toast(t('acc.saved'));
+      if (u.profile.lang !== N.lang) { location.href = 'account.html?tab=profile&lang=' + u.profile.lang; return; }
+      draw();
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var el;
+    if ((el = e.target.closest('[data-auth]'))) { S.authTab = el.getAttribute('data-auth'); S.smsSent = false; draw(); return; }
+    if ((el = e.target.closest('[data-social]'))) { signIn('guest@' + el.getAttribute('data-social') + '.demo', el.getAttribute('data-social')); N.toast(t('acc.socialDemo')); return; }
+    if ((el = e.target.closest('[data-tab]'))) { S.tab = el.getAttribute('data-tab'); draw(); return; }
+    if ((el = e.target.closest('[data-filter]'))) { S.filter = el.getAttribute('data-filter'); draw(); return; }
+    if ((el = e.target.closest('[data-inv]'))) { showInvoice(el.getAttribute('data-inv')); return; }
+    if ((el = e.target.closest('[data-cancel]'))) {
+      var code = el.getAttribute('data-cancel'), list = bookings();
+      if (el.getAttribute('data-armed') !== '1') { el.setAttribute('data-armed', '1'); el.textContent = t('acc.cancelConfirm'); return; }
+      list.forEach(function (b) { if (b.code === code) b.status = 'cancelled'; });
+      N.store.set('naqsh.bookings', list); N.toast(t('acc.cancelled')); draw(); return;
+    }
+    if ((el = e.target.closest('[data-rmcard]'))) { var u = user(); u.cards = u.cards.filter(function (c) { return c.id !== el.getAttribute('data-rmcard'); }); saveUser(u); draw(); return; }
+    if (e.target.closest('[data-logout]')) { N.store.del('naqsh.user'); draw(); }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeInvoice(); });
+
+  N.onRender(draw);
+})();
+</script>
+</body>
+</html>

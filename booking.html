@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bron qilish — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Onlayn bron: sanalar, mehmonlar soni va xona turini tanlang. Yakuniy narx QQS bilan.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-title="bk.title">
+<header id="site-header" class="site-header"></header>
+<main id="main" class="page-plain">
+  <section class="section" style="padding-top:12px">
+    <div class="container">
+      <p class="demo-banner" style="border-radius:var(--radius);margin-bottom:28px" data-i18n="demo.booking"></p>
+      <ol class="steps" id="steps"></ol>
+      <div id="flow"></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, D = window.NAQSH_DATA, t = N.t;
+  var q = new URLSearchParams(location.search);
+  var user = N.store.get('naqsh.user');
+  var prof = (user && user.profile) || {};
+  var S = {
+    step: 1,
+    in: q.get('in') && q.get('in') >= N.today() ? q.get('in') : N.addDays(N.today(), 7),
+    out: null, adults: +(q.get('adults') || 2), children: +(q.get('children') || 0),
+    room: q.get('room') || '', extras: [],
+    guest: { first: prof.first || '', last: prof.last || '', email: (user && user.email) || '', phone: prof.phone || '', country: prof.country || 'UZ', arrival: '14:00', requests: '', diet: prof.diet || '' },
+    pay: { method: 'uzcard', number: '', exp: '', name: '', cvv: '', save: true, otp: false },
+    booking: null
+  };
+  S.out = q.get('out') && q.get('out') > S.in ? q.get('out') : N.addDays(S.in, 2);
+
+  var COUNTRIES = ['UZ', 'KZ', 'RU', 'KG', 'TJ', 'TR', 'DE', 'GB', 'US', 'CN', 'KR', 'JP', 'IN', 'AE', 'FR', 'IT', 'OTHER'];
+  function countryName(c) {
+    if (c === 'OTHER') return t('f.otherCountry');
+    try { return new Intl.DisplayNames([N.lang === 'uz' ? 'uz' : N.lang], { type: 'region' }).of(c); } catch (e) { return c; }
+  }
+
+  /* ---------- helpers ---------- */
+  function field(id, label, input, err) { return '<div class="field"><label for="' + id + '">' + label + '</label>' + input + (err ? '<span class="err">' + err + '</span>' : '') + '</div>'; }
+  function brandOf(num) {
+    var n = num.replace(/\D/g, '');
+    if (/^8600|^5614/.test(n)) return 'uzcard';
+    if (/^9860/.test(n)) return 'humo';
+    if (/^4/.test(n)) return 'visa';
+    if (/^(5[1-5]|2[2-7])/.test(n)) return 'mastercard';
+    return null;
+  }
+  function luhn(n) { var s = 0, d = false; for (var i = n.length - 1; i >= 0; i--) { var x = +n[i]; if (d) { x *= 2; if (x > 9) x -= 9; } s += x; d = !d; } return s % 10 === 0; }
+  function isLocal(m) { return m === 'uzcard' || m === 'humo'; }
+
+  function summary() {
+    var r = N.room(S.room); if (!r) return '';
+    var qq = N.quote(r, S.in, S.out, S.extras);
+    var ex = S.extras.map(function (id) { var x = D.extras.filter(function (e) { return e.id === id; })[0]; return '<li><span>' + N.esc(N.L(x.name)) + '</span><span>' + (x.price ? N.money(x.price) : t('q.free')) + '</span></li>'; }).join('');
+    return '<aside class="sticky-card"><img src="' + N.img(r.img, true) + '" alt="" style="border-radius:var(--radius);aspect-ratio:16/10;object-fit:cover;margin-bottom:18px">' +
+      '<h3 style="margin-bottom:6px">' + N.esc(N.L(r.name)) + '</h3>' +
+      '<p style="font-size:.9rem;color:var(--muted);margin:0">' + N.fmtDate(S.in) + ' — ' + N.fmtDate(S.out) + '<br>' + t('q.nights', { n: qq.nights }) + ' · ' + S.adults + ' ' + t(S.adults === 1 ? 'bw.adult' : 'bw.adults') + (S.children ? ', ' + S.children + ' ' + t('bk.childrenShort') : '') + '</p>' +
+      '<ul class="price-lines"><li><span>' + N.money(r.price) + ' × ' + qq.nights + '</span><span>' + N.money(qq.roomTotal) + '</span></li>' +
+      (qq.discount ? '<li><span>' + t('q.early') + '</span><span>−' + N.money(qq.discount) + '</span></li>' : '') + ex +
+      '<li class="muted"><span>' + t('q.net') + '</span><span>' + N.money(qq.net) + '</span></li>' +
+      '<li class="muted"><span>' + t('q.vat') + '</span><span>' + N.money(qq.vat) + '</span></li>' +
+      '<li class="total"><span>' + t('q.total') + '</span><span>' + N.money(qq.total) + '</span></li></ul>' +
+      '<div class="note"><span>' + N.icon('shield') + '</span><span>' + t('room.freeCancel') + '</span></div></aside>';
+  }
+
+  /* ---------- step 1: search + availability ---------- */
+  function step1() {
+    var n = N.nights(S.in, S.out), party = S.adults + S.children;
+    var opt = function (v, sel, label) { return '<option value="' + v + '"' + (v === sel ? ' selected' : '') + '>' + label + '</option>'; };
+    var ad = '', ch = '';
+    for (var i = 1; i <= 4; i++) ad += opt(i, S.adults, i);
+    for (var j = 0; j <= 3; j++) ch += opt(j, S.children, j);
+    var html = '<form class="search-bar" id="search" novalidate>' +
+      field('s-in', t('bw.in'), '<input id="s-in" type="date" name="in" min="' + N.today() + '" value="' + S.in + '">') +
+      field('s-out', t('bw.out'), '<input id="s-out" type="date" name="out" min="' + N.addDays(S.in, 1) + '" value="' + S.out + '">') +
+      field('s-ad', t('bk.adults'), '<select id="s-ad" name="adults">' + ad + '</select>') +
+      field('s-ch', t('bk.children'), '<select id="s-ch" name="children">' + ch + '</select>') +
+      '<button class="btn btn--navy" type="submit">' + t('bk.update') + '</button></form>';
+    html += '<h2 style="font-size:2rem">' + t('bk.available', { n: n }) + '</h2><p style="color:var(--muted)">' + N.fmtDate(S.in) + ' — ' + N.fmtDate(S.out) + '</p>';
+    html += D.rooms.map(function (r) {
+      var left = N.availability(r, S.in, S.out), fits = S.adults <= r.guests && party <= r.guests + r.maxChildren;
+      var qq = N.quote(r, S.in, S.out, []);
+      var status = !fits ? '<span class="left-badge">' + t('av.capacity', { n: r.guests }) + '</span>'
+        : !left ? '<span class="left-badge">' + t('av.none') + '</span>'
+        : '<span class="' + (left <= 2 ? 'left-badge' : 'ok-badge') + '">' + t(left <= 2 ? 'av.left' : 'av.ok', { n: left }) + '</span>';
+      return '<article class="avail' + (S.room === r.id ? ' is-selected' : '') + (!left || !fits ? ' is-soldout' : '') + '">' +
+        '<div class="avail-media"><img src="' + N.img(r.img, true) + '" alt="' + N.esc(N.L(r.name)) + '" loading="lazy"></div>' +
+        '<div class="avail-body"><h3>' + N.esc(N.L(r.name)) + '</h3>' +
+        '<div class="room-meta"><span>' + N.icon('area') + r.area + ' m²</span><span>' + N.icon('users') + t('rooms.upTo', { n: r.guests }) + '</span><span>' + N.icon('bed') + N.esc(N.L(r.bed)) + '</span></div>' +
+        '<div class="chips" style="margin-bottom:8px"><span class="chip">' + N.icon('breakfast') + t('room.breakfastIncl') + '</span><span class="chip">' + N.icon('shield') + t('bk.freeCancelShort') + '</span></div>' +
+        '<a class="link" href="room.html?type=' + r.id + '" target="_blank">' + t('rooms.details') + '</a></div>' +
+        '<div class="avail-side"><div class="price"><small>' + t('price.perNightVat') + '</small><b>' + N.money(r.price) + '</b><em>' + t('bk.totalFor', { n: qq.nights }) + ': ' + N.money(qq.total - qq.extrasTotal) + '</em></div>' +
+        status + '<button class="btn btn--gold btn--sm" type="button" data-select="' + r.id + '"' + (!left || !fits ? ' disabled' : '') + '>' + t('bk.select') + '</button></div></article>';
+    }).join('');
+    html += '<div class="note"><span>' + N.icon('info') + '</span><span>' + t('price.vatNote') + '</span></div>';
+    return html;
+  }
+
+  /* ---------- step 2: guest details ---------- */
+  function step2() {
+    var g = S.guest;
+    var countries = COUNTRIES.map(function (c) { return '<option value="' + c + '"' + (g.country === c ? ' selected' : '') + '>' + N.esc(countryName(c)) + '</option>'; }).join('');
+    var times = ''; for (var h = 0; h < 24; h += 1) { var v = (h < 10 ? '0' : '') + h + ':00'; times += '<option' + (g.arrival === v ? ' selected' : '') + '>' + v + '</option>'; }
+    var ex = D.extras.map(function (x) {
+      return '<label class="checkbox"><input type="checkbox" name="extra" value="' + x.id + '"' + (S.extras.indexOf(x.id) > -1 ? ' checked' : '') + '><span><b>' + N.esc(N.L(x.name)) + '</b> — ' + (x.price ? N.money(x.price) : t('q.free')) + '</span></label>';
+    }).join('');
+    return '<div class="flow-layout"><form id="guest" novalidate>' +
+      '<div class="panel"><h3>' + t('bk.guestH') + '</h3>' +
+        (user ? '' : '<p class="note" style="margin:0 0 18px">' + N.icon('user') + '<span>' + t('bk.loginHint') + ' <a class="link" style="font-size:.7rem" href="account.html?next=booking">' + t('acc.login') + '</a></span></p>') +
+        '<div class="form-row">' + field('g-first', t('f.first'), '<input id="g-first" name="first" required autocomplete="given-name" value="' + N.esc(g.first) + '">', t('f.req')) +
+        field('g-last', t('f.last'), '<input id="g-last" name="last" required autocomplete="family-name" value="' + N.esc(g.last) + '">', t('f.req')) + '</div>' +
+        '<div class="form-row">' + field('g-email', t('f.email'), '<input id="g-email" name="email" type="email" required autocomplete="email" value="' + N.esc(g.email) + '">', t('f.emailBad')) +
+        field('g-phone', t('f.phone'), '<input id="g-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+998 __ ___ __ __" value="' + N.esc(g.phone) + '">', t('f.req')) + '</div>' +
+        '<div class="form-row">' + field('g-country', t('f.country'), '<select id="g-country" name="country">' + countries + '</select>') +
+        field('g-arr', t('f.arrival'), '<select id="g-arr" name="arrival">' + times + '</select>') + '</div>' +
+      '</div>' +
+      '<div class="panel"><h3>' + t('bk.requestsH') + '</h3>' +
+        field('g-diet', t('f.diet'), '<input id="g-diet" name="diet" placeholder="' + N.esc(t('f.dietPh')) + '" value="' + N.esc(g.diet) + '">') +
+        field('g-req', t('f.requests'), '<textarea id="g-req" name="requests" placeholder="' + N.esc(t('f.requestsPh')) + '">' + N.esc(g.requests) + '</textarea>') +
+      '</div>' +
+      '<div class="panel"><h3>' + t('bk.extrasH') + '</h3>' + ex + '</div>' +
+      '<label class="checkbox"><input type="checkbox" name="agree" required><span>' + t('bk.agree') + '</span></label>' +
+      '<div class="cta-actions" style="justify-content:space-between"><button class="btn btn--ghost" type="button" data-back>' + t('bk.back') + '</button><button class="btn btn--gold" type="submit">' + t('bk.toPayment') + ' ' + N.icon('arrow') + '</button></div>' +
+      '</form>' + summary() + '</div>';
+  }
+
+  /* ---------- step 3: payment ---------- */
+  function step3() {
+    var p = S.pay, r = N.room(S.room), qq = N.quote(r, S.in, S.out, S.extras);
+    var methods = [['uzcard', 'Uzcard', 'pay.local'], ['humo', 'Humo', 'pay.local'], ['visa', 'Visa', 'pay.intl'], ['mastercard', 'Mastercard', 'pay.intl']];
+    var saved = (user && user.cards) || [], dis = p.otp ? ' disabled' : '';
+    return '<div class="flow-layout"><form id="pay" novalidate><div class="panel"><h3>' + t('bk.payH') + '</h3>' +
+      '<div class="pay-methods" role="group">' + methods.map(function (m) { return '<button type="button" class="pay-method" data-method="' + m[0] + '" aria-pressed="' + (p.method === m[0]) + '">' + m[1] + '<small>' + t(m[2]) + '</small></button>'; }).join('') + '</div>' +
+      (saved.length ? '<p style="font-size:.86rem;color:var(--muted)">' + t('pay.saved') + ': ' + saved.map(function (c) { return '<button type="button" class="chip" data-saved="' + c.id + '">' + c.brand.toUpperCase() + ' •••• ' + c.last4 + '</button>'; }).join(' ') + '</p>' : '') +
+      field('p-num', t('pay.number'), '<input id="p-num" name="number" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000"' + dis + ' value="' + N.esc(p.saved ? p.saved.brand.toUpperCase() + ' •••• ' + p.saved.last4 : p.number) + '">', t('pay.numberBad')) +
+      '<div class="form-row">' + field('p-exp', t('pay.exp'), '<input id="p-exp" name="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY"' + dis + ' value="' + N.esc(p.exp) + '">', t('pay.expBad')) +
+      (isLocal(p.method) ? '' : field('p-cvv', 'CVV', '<input id="p-cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="•••"' + dis + '>', t('pay.cvvBad'))) + '</div>' +
+      (isLocal(p.method) ? '' : field('p-name', t('pay.holder'), '<input id="p-name" name="name" autocomplete="cc-name"' + dis + ' value="' + N.esc(p.name) + '" style="text-transform:uppercase">', t('f.req'))) +
+      (p.otp ? field('p-otp', t('pay.otp'), '<input id="p-otp" name="otp" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">', t('pay.otpBad')) : '') +
+      (user ? '<label class="checkbox"><input type="checkbox" name="save"' + (p.save ? ' checked' : '') + '><span>' + t('pay.save') + '</span></label>' : '') +
+      '<div class="note"><span>' + N.icon('lock') + '</span><span>' + t(isLocal(p.method) ? 'pay.secureLocal' : 'pay.secureIntl') + '</span></div>' +
+      '</div>' +
+      '<div class="cta-actions" style="justify-content:space-between"><button class="btn btn--ghost" type="button" data-back>' + t('bk.back') + '</button><button class="btn btn--gold" type="submit">' + (p.otp ? t('pay.confirm') : t('pay.payBtn', { sum: N.money(qq.total) })) + '</button></div>' +
+      '</form>' + summary() + '</div>';
+  }
+
+  /* ---------- step 4: confirmation ---------- */
+  function step4() {
+    var b = S.booking, r = N.room(b.room);
+    return '<div class="confirm panel"><div class="confirm-icon">' + N.icon('check') + '</div>' +
+      '<span class="eyebrow">' + t('bk.confirmed') + '</span><h2>' + t('bk.thanks', { name: N.esc(b.guest.first) }) + '</h2>' +
+      '<p>' + t('bk.code') + '</p><p class="code">' + b.code + '</p>' +
+      '<ul class="price-lines" style="text-align:left"><li><span>' + t('bw.room') + '</span><span>' + N.esc(N.L(r.name)) + '</span></li>' +
+      '<li><span>' + t('bw.in') + ' — ' + t('bw.out') + '</span><span>' + N.fmtDate(b.in) + ' — ' + N.fmtDate(b.out) + '</span></li>' +
+      '<li><span>' + t('pay.method') + '</span><span>' + b.method.toUpperCase() + ' •••• ' + b.last4 + '</span></li>' +
+      '<li class="muted"><span>' + t('q.vat') + '</span><span>' + N.money(b.vat) + '</span></li>' +
+      '<li class="total"><span>' + t('q.paid') + '</span><span>' + N.money(b.total) + '</span></li></ul>' +
+      '<p style="color:var(--muted);font-size:.9rem">' + t('bk.emailSent', { email: N.esc(b.guest.email) }) + '</p>' +
+      '<div class="cta-actions" style="justify-content:center"><a class="btn btn--navy" href="account.html?tab=invoices">' + N.icon('file') + t('bk.invoice') + '</a><a class="btn btn--ghost" href="account.html">' + t('bk.myBookings') + '</a></div></div>';
+  }
+
+  /* ---------- render ---------- */
+  function draw() {
+    var labels = ['bk.s1', 'bk.s2', 'bk.s3', 'bk.s4'];
+    document.getElementById('steps').innerHTML = labels.map(function (k, i) {
+      return '<li class="' + (i + 1 === S.step ? 'is-active' : i + 1 < S.step ? 'is-done' : '') + '"><span>' + t(k) + '</span></li>';
+    }).join('');
+    document.getElementById('flow').innerHTML = [null, step1, step2, step3, step4][S.step]();
+    bind();
+  }
+  function go(n) { S.step = n; draw(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+  function collectGuest(f) {
+    ['first', 'last', 'email', 'phone', 'country', 'arrival', 'requests', 'diet'].forEach(function (k) { if (f.elements[k]) S.guest[k] = f.elements[k].value.trim(); });
+    S.extras = [].slice.call(f.querySelectorAll('input[name="extra"]:checked')).map(function (i) { return i.value; });
+  }
+  function collectPay(f) {
+    ['number', 'exp', 'name'].forEach(function (k) { if (f.elements[k] && !(k === 'number' && S.pay.saved)) S.pay[k] = f.elements[k].value.trim(); });
+    S.pay.save = !!(f.elements.save && f.elements.save.checked);
+  }
+  function invalid(el, bad) { el.closest('.field').classList.toggle('invalid', bad); return bad; }
+
+  function bind() {
+    var s = document.getElementById('search');
+    if (s) {
+      s.elements['in'].addEventListener('change', function () { if (s.elements.out.value <= s.elements['in'].value) s.elements.out.value = N.addDays(s.elements['in'].value, 1); s.elements.out.min = N.addDays(s.elements['in'].value, 1); });
+      s.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!s.elements['in'].value || s.elements.out.value <= s.elements['in'].value) { N.toast(t('bw.invalid')); return; }
+        S.in = s.elements['in'].value; S.out = s.elements.out.value; S.adults = +s.elements.adults.value; S.children = +s.elements.children.value;
+        draw();
+      });
+    }
+    var g = document.getElementById('guest');
+    if (g) {
+      g.addEventListener('change', function (e) { if (e.target.name === 'extra') { collectGuest(g); var a = document.querySelector('.sticky-card'); a.outerHTML = summary(); } });
+      g.addEventListener('submit', function (e) {
+        e.preventDefault(); collectGuest(g);
+        var bad = false;
+        bad = invalid(g.elements.first, !S.guest.first) || bad;
+        bad = invalid(g.elements.last, !S.guest.last) || bad;
+        bad = invalid(g.elements.email, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.guest.email)) || bad;
+        bad = invalid(g.elements.phone, S.guest.phone.replace(/\D/g, '').length < 7) || bad;
+        if (!g.elements.agree.checked) { N.toast(t('bk.agreeReq')); bad = true; }
+        if (bad) { var first = g.querySelector('.invalid input'); if (first) first.focus(); return; }
+        go(3);
+      });
+    }
+    var p = document.getElementById('pay');
+    if (p) {
+      p.elements.number.addEventListener('input', function (e) {
+        S.pay.saved = null;
+        var v = e.target.value.replace(/\D/g, '').slice(0, 16);
+        e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+        var b = brandOf(v);
+        if (b && b !== S.pay.method && !S.pay.otp) { collectPay(p); S.pay.method = b; draw(); var n = document.getElementById('p-num'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }
+      });
+      p.elements.exp.addEventListener('input', function (e) {
+        var v = e.target.value.replace(/\D/g, '').slice(0, 4);
+        e.target.value = v.length > 2 ? v.slice(0, 2) + '/' + v.slice(2) : v;
+      });
+      p.addEventListener('submit', function (e) {
+        e.preventDefault(); collectPay(p);
+        if (S.pay.otp) {
+          if (invalid(p.elements.otp, !/^\d{6}$/.test(p.elements.otp.value))) return;
+          return finish(S.pay.saved ? S.pay.saved.last4 : S.pay.number.replace(/\D/g, ''));
+        }
+        var num = S.pay.number.replace(/\D/g, ''), bad = false, m = S.pay.method;
+        var numOk = !!S.pay.saved || num.length === 16 && (isLocal(m) ? brandOf(num) === m : luhn(num) && brandOf(num) === m);
+        bad = invalid(p.elements.number, !numOk) || bad;
+        var mm = +S.pay.exp.slice(0, 2), yy = +S.pay.exp.slice(3, 5), now = new Date(), cy = now.getFullYear() % 100, cm = now.getMonth() + 1;
+        bad = invalid(p.elements.exp, !(/^\d\d\/\d\d$/.test(S.pay.exp) && mm >= 1 && mm <= 12 && (yy > cy || (yy === cy && mm >= cm)))) || bad;
+        if (p.elements.cvv) bad = invalid(p.elements.cvv, !/^\d{3,4}$/.test(p.elements.cvv.value)) || bad;
+        if (p.elements.name) bad = invalid(p.elements.name, !S.pay.name) || bad;
+        if (bad) return;
+        S.pay.otp = true; draw(); N.toast(t('pay.otpSent')); document.getElementById('p-otp').focus();
+      });
+    }
+  }
+
+  function finish(num) {
+    var r = N.room(S.room), qq = N.quote(r, S.in, S.out, S.extras);
+    var code = 'NQ-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    var b = { code: code, room: r.id, in: S.in, out: S.out, adults: S.adults, children: S.children, extras: S.extras.slice(), guest: JSON.parse(JSON.stringify(S.guest)),
+      nights: qq.nights, roomTotal: qq.roomTotal, discount: qq.discount, extrasTotal: qq.extrasTotal, total: qq.total, vat: qq.vat, net: qq.net,
+      method: S.pay.method, last4: num.slice(-4), status: 'upcoming', created: new Date().toISOString() };
+    var list = N.store.get('naqsh.bookings', []); list.unshift(b); N.store.set('naqsh.bookings', list);
+    if (user && S.pay.save) {
+      user.cards = user.cards || [];
+      if (!user.cards.some(function (c) { return c.last4 === b.last4 && c.brand === b.method; }))
+        user.cards.push({ id: Date.now().toString(36), brand: b.method, last4: b.last4, exp: S.pay.exp });
+      N.store.set('naqsh.user', user);
+    }
+    S.booking = b; S.pay = { method: 'uzcard', number: '', exp: '', name: '', cvv: '', save: true, otp: false, saved: null };
+    go(4);
+  }
+
+  document.addEventListener('click', function (e) {
+    var sel = e.target.closest('[data-select]');
+    if (sel) { S.room = sel.getAttribute('data-select'); go(2); return; }
+    if (e.target.closest('[data-back]')) {
+      var f = document.getElementById('guest'); if (f) collectGuest(f);
+      var p = document.getElementById('pay'); if (p) { collectPay(p); S.pay.otp = false; }
+      go(S.step - 1); return;
+    }
+    var m = e.target.closest('[data-method]');
+    if (m) { var pf = document.getElementById('pay'); collectPay(pf); S.pay.method = m.getAttribute('data-method'); S.pay.otp = false; S.pay.saved = null; draw(); return; }
+    var sv = e.target.closest('[data-saved]');
+    if (sv) {
+      var c = user.cards.filter(function (x) { return x.id === sv.getAttribute('data-saved'); })[0];
+      S.pay.method = c.brand; S.pay.saved = c; S.pay.exp = c.exp; S.pay.otp = false;
+      draw();
+    }
+  });
+
+  N.onRender(function () {
+    if (S.step === 2) { var g = document.getElementById('guest'); if (g) collectGuest(g); }
+    if (S.step === 3) { var p = document.getElementById('pay'); if (p) collectPay(p); }
+    draw();
+  });
+})();
+</script>
+</body>
+</html>

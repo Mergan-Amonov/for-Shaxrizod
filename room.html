@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xona — NAQSH Heritage &amp; Smart Hotel</title>
+<meta name="description" content="Xona tafsilotlari: maydon, sig‘im, qulayliklar, galereya va onlayn bron.">
+<meta name="theme-color" content="#0a1a2c">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+<main id="main">
+  <div class="room-gallery" id="room-gallery"></div>
+
+  <section class="section">
+    <div class="container room-layout">
+      <div>
+        <div class="crumbs" style="color:var(--gold-dark)"><a href="index.html" data-i18n="nav.home"></a> / <a href="rooms.html" data-i18n="nav.rooms"></a></div>
+        <h1 id="room-name"></h1>
+        <p class="lead" id="room-short"></p>
+        <div class="spec-grid" id="room-specs"></div>
+        <p id="room-desc"></p>
+        <h3 style="margin-top:40px" data-i18n="room.amenities"></h3>
+        <ul class="amenities" id="room-amen"></ul>
+        <h3 data-i18n="room.policyH"></h3>
+        <ul class="amenities" id="room-pol"></ul>
+      </div>
+      <aside class="sticky-card" id="room-card"></aside>
+    </div>
+  </section>
+
+  <section class="section section--sand">
+    <div class="container">
+      <div class="section-head center"><span class="eyebrow" data-i18n="room.other"></span></div>
+      <div class="grid grid-3 one-mobile" id="other-rooms"></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var N = window.NAQSH, D = window.NAQSH_DATA;
+  var r = N.room(new URLSearchParams(location.search).get('type')) || D.rooms[0];
+
+  function updateQuote() {
+    var f = document.querySelector('#room-card form'); if (!f) return;
+    var a = f.elements['in'].value, b = f.elements['out'].value, box = document.getElementById('rc-quote');
+    if (!a || !b || b <= a) { box.innerHTML = ''; return; }
+    var q = N.quote(r, a, b, []), left = N.availability(r, a, b);
+    box.innerHTML = '<ul class="price-lines">' +
+      '<li><span>' + N.money(r.price) + ' × ' + N.t('q.nights', { n: q.nights }) + '</span><span>' + N.money(q.roomTotal) + '</span></li>' +
+      (q.discount ? '<li><span>' + N.t('q.early') + '</span><span>−' + N.money(q.discount) + '</span></li>' : '') +
+      '<li class="muted"><span>' + N.t('q.vatIncl') + '</span><span>' + N.money(q.vat) + '</span></li>' +
+      '<li class="total"><span>' + N.t('q.total') + '</span><span>' + N.money(q.total) + '</span></li></ul>' +
+      (left ? '<p class="' + (left <= 2 ? 'left-badge' : 'ok-badge') + '">' + N.t(left <= 2 ? 'av.left' : 'av.ok', { n: left }) + '</p>' : '<p class="left-badge">' + N.t('av.none') + '</p>');
+    f.querySelector('button').disabled = !left;
+  }
+
+  N.onRender(function () {
+    document.body.setAttribute('data-title', '');
+    document.title = N.L(r.name) + ' — NAQSH Heritage & Smart Hotel';
+    var g = r.gallery.map(function (k) { return { img: k, cap: N.L(r.name) }; });
+    document.getElementById('room-gallery').innerHTML = g.slice(0, 3).map(function (it, i) {
+      return '<button type="button" data-i="' + i + '" aria-label="' + N.esc(N.t('room.photos')) + '"><img src="' + N.img(it.img, i > 0) + '" alt="' + N.esc(it.cap) + '"' + (i ? ' loading="lazy"' : ' fetchpriority="high"') + '>' +
+        (i === 2 ? '<span class="gallery-count">' + N.icon('images') + N.t('room.allPhotos', { n: g.length }) + '</span>' : '') + '</button>';
+    }).join('');
+    document.querySelectorAll('#room-gallery button').forEach(function (b) {
+      b.addEventListener('click', function () { N.openLightbox(g, +b.getAttribute('data-i')); });
+    });
+
+    document.getElementById('room-name').textContent = N.L(r.name);
+    document.getElementById('room-short').textContent = N.L(r.short);
+    document.getElementById('room-desc').textContent = N.L(r.desc);
+    document.getElementById('room-specs').innerHTML =
+      [['area', 'cmp.area', r.area + ' m²'], ['users', 'cmp.guests', N.t('rooms.upTo', { n: r.guests })], ['bed', 'cmp.bed', N.L(r.bed)], ['breakfast', 'room.breakfast', N.t('room.included')]]
+      .map(function (s) { return '<div class="spec">' + N.icon(s[0]) + '<small>' + N.t(s[1]) + '</small><b>' + N.esc(s[2]) + '</b></div>'; }).join('');
+    document.getElementById('room-amen').innerHTML = r.amenities.map(function (a) { return '<li>' + N.icon(a) + N.esc(N.L(D.amenityLabels[a])) + '</li>'; }).join('');
+    document.getElementById('room-pol').innerHTML = ['room.pol1', 'room.pol2', 'room.pol3', 'room.pol4'].map(function (k, i) {
+      return '<li>' + N.icon(['clock', 'clock', 'shield', 'kids'][i]) + N.t(k) + '</li>';
+    }).join('');
+
+    var prev = document.querySelector('#room-card form'), a0 = N.addDays(N.today(), 7), b0 = N.addDays(N.today(), 9);
+    var vi = prev ? prev.elements['in'].value : a0, vo = prev ? prev.elements['out'].value : b0, va = prev ? prev.elements['adults'].value : '2';
+    var opts = ''; for (var n = 1; n <= r.guests; n++) opts += '<option value="' + n + '"' + (String(n) === va ? ' selected' : '') + '>' + n + ' ' + N.t(n === 1 ? 'bw.adult' : 'bw.adults') + '</option>';
+    document.getElementById('room-card').innerHTML =
+      '<div class="price"><small>' + N.t('price.from') + '</small><b>' + N.money(r.price) + '</b><em>' + N.t('price.perNightVat') + '</em></div>' +
+      '<form action="booking.html" method="get" style="margin-top:22px"><input type="hidden" name="room" value="' + r.id + '"><input type="hidden" name="lang" value="' + N.lang + '">' +
+      '<div class="form-row"><div class="field"><label for="rc-in">' + N.t('bw.in') + '</label><input id="rc-in" type="date" name="in" min="' + N.today() + '" value="' + vi + '"></div>' +
+      '<div class="field"><label for="rc-out">' + N.t('bw.out') + '</label><input id="rc-out" type="date" name="out" min="' + N.addDays(N.today(), 1) + '" value="' + vo + '"></div></div>' +
+      '<div class="field"><label for="rc-ad">' + N.t('bw.guests') + '</label><select id="rc-ad" name="adults">' + opts + '</select></div>' +
+      '<div id="rc-quote"></div>' +
+      '<button class="btn btn--gold btn--block" type="submit">' + N.t('nav.book') + '</button></form>' +
+      '<div class="note"><span>' + N.icon('shield') + '</span><span>' + N.t('room.freeCancel') + '</span></div>';
+    var f = document.querySelector('#room-card form');
+    f.elements['in'].addEventListener('change', function () { if (f.elements['out'].value <= f.elements['in'].value) f.elements['out'].value = N.addDays(f.elements['in'].value, 1); updateQuote(); });
+    f.elements['out'].addEventListener('change', updateQuote);
+    updateQuote();
+
+    document.getElementById('other-rooms').innerHTML = D.rooms.filter(function (x) { return x.id !== r.id; }).map(N.roomCard).join('');
+  });
+})();
+</script>
+</body>
+</html>
