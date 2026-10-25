@@ -344,6 +344,11 @@ body.has-hero .site-header:not(.is-solid){background:linear-gradient(180deg,rgba
 .tg-code{min-height:84px;border:2px solid var(--line);border-radius:var(--radius-lg);background:#fff;font-family:var(--sans);font-size:2.2rem;font-weight:800;color:var(--navy-900);transition:border-color .2s,background .2s}
 .tg-code:hover{border-color:#2a8bc9;background:#eef6fc}
 .tg-code[disabled]{opacity:.5}
+.tg-qr{text-align:center;margin-top:18px}
+.tg-qr-box{width:200px;max-width:70%;margin:0 auto;padding:8px;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.tg-qr-box svg{display:block;width:100%;height:auto}
+.tg-qr p{font-size:.84rem;color:var(--muted);margin:10px 0 0}
+@media (max-width:720px){.tg-qr{display:none}}
 .divider{display:flex;align-items:center;gap:12px;font-size:.74rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin:20px 0}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
 .dash{display:grid;grid-template-columns:260px 1fr;gap:36px;align-items:start}

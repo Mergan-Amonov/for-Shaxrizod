@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=202610251850">
+<link rel="stylesheet" href="assets/css/style.css?v=202610251855">
 </head>
 <body data-title="nav.account">
 <header id="site-header" class="site-header"></header>
@@ -24,10 +24,10 @@
   </section>
 </main>
 <footer id="site-footer" class="site-footer"></footer>
-<script src="assets/js/data.js?v=202610251850"></script>
-<script src="assets/js/i18n.js?v=202610251850"></script>
-<script src="assets/js/app.js?v=202610251850"></script>
-<script src="assets/js/invoice.js?v=202610251850"></script>
+<script src="assets/js/data.js?v=202610251855"></script>
+<script src="assets/js/i18n.js?v=202610251855"></script>
+<script src="assets/js/app.js?v=202610251855"></script>
+<script src="assets/js/invoice.js?v=202610251855"></script>
 <script>
 (function () {
   var N = window.NAQSH, D = window.NAQSH_DATA, t = N.t;
@@ -87,7 +87,7 @@
     }
     saveUser(u);
   }
-  function tgReset() { S.tg.view = null; S.tg.status = null; S.tg.options = []; S.tg.botLink = ''; }
+  function tgReset() { S.tg.view = null; S.tg.status = null; S.tg.options = []; S.tg.botLink = ''; S.tg.qrSvg = ''; }
   function tgLoggedIn(su) {
     tgReset(); S.tg.pending = null; adoptServer(su); N.toast(t('tg.ok'));
     if (q.get('next') === 'booking') { location.href = 'booking.html'; return; }
@@ -97,12 +97,14 @@
   function tgPoll() {
     clearTimeout(pollTimer);
     if (S.tg.view !== 'wait') return;
-    api('GET', '/api/auth/telegram/status').then(function (d) {
+    api('GET', '/api/auth/telegram/status' + (S.tg.qrSvg ? '' : '?qr=1')).then(function (d) {
       if (S.tg.view !== 'wait') return;
       if (d.status === 'contact') { S.tg.view = 'pick'; S.tg.options = d.options || []; draw(); return; }
       if (d.status === 'new' || d.status === 'started') {
         if (d.botLink) S.tg.botLink = d.botLink;
-        if (d.status !== S.tg.status) { S.tg.status = d.status; draw(); }
+        var fresh = d.qrSvg && !S.tg.qrSvg;
+        if (fresh) S.tg.qrSvg = d.qrSvg;
+        if (d.status !== S.tg.status || fresh) { S.tg.status = d.status; draw(); }
         pollTimer = setTimeout(tgPoll, 2000);
         return;
       }
@@ -140,6 +142,7 @@
     return head + '<h2 style="text-align:center">' + t('tg.title') + '</h2>' +
       '<ol style="padding-left:20px;margin:0 0 20px">' + ['tg.step1', 'tg.step2', 'tg.step3'].map(function (k) { return '<li style="margin-bottom:6px">' + t(k) + '</li>'; }).join('') + '</ol>' +
       '<a class="btn btn--tg btn--block" href="' + N.esc(S.tg.botLink) + '" target="_blank" rel="noopener">' + N.icon('telegram') + t('tg.open') + '</a>' +
+      (S.tg.qrSvg ? '<div class="tg-qr"><div class="tg-qr-box">' + S.tg.qrSvg + '</div><p>' + t('tg.qr') + '</p></div>' : '') +
       '<p style="text-align:center;font-size:.88rem;color:var(--muted);margin-top:16px">' + t(S.tg.status === 'started' ? 'tg.started' : 'tg.waiting') + '</p>' + back + '</div>';
   }
 
@@ -276,7 +279,7 @@
       S.tg.busy = true; draw();
       api('POST', '/api/auth/telegram/start', { lang: N.lang }).then(function (d) {
         S.tg.busy = false;
-        if (d.ok) { S.tg.view = 'wait'; S.tg.status = 'new'; S.tg.botLink = d.botLink; draw(); pollTimer = setTimeout(tgPoll, 2000); }
+        if (d.ok) { S.tg.view = 'wait'; S.tg.status = 'new'; S.tg.botLink = d.botLink; S.tg.qrSvg = d.qrSvg || ''; draw(); pollTimer = setTimeout(tgPoll, 2000); }
         else { N.toast(t('tg.error')); draw(); }
       }).catch(function () { S.tg.busy = false; N.toast(t('tg.error')); draw(); });
       return;

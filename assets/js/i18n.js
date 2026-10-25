@@ -341,6 +341,7 @@ window.NAQSH_I18N = {
   'inv.sum': { uz: 'Summa', ru: 'Сумма', en: 'Amount' },
   'inv.paidBy': { uz: 'To‘langan: {m}', ru: 'Оплачено: {m}', en: 'Paid by {m}' },
   'inv.note': { uz: 'Rasmiy elektron hisob-faktura soliq tizimi (Didox/Faktura.uz) orqali korporativ mijozlarga alohida yuboriladi.', ru: 'Официальная электронная счёт-фактура направляется корпоративным клиентам через налоговую систему (Didox/Faktura.uz).', en: 'Official tax e‑invoices are issued to corporate clients via the national system (Didox/Faktura.uz).' },
+  'tg.qr': { uz: 'Kompyuterdamisiz? Telefon kamerasi bilan skanerlang — bot telefonda ochiladi.', ru: 'Вы за компьютером? Отсканируйте камерой телефона — бот откроется на телефоне.', en: 'On a computer? Scan with your phone camera — the bot opens on your phone.' },
   'inv.qr': { uz: 'Bron ma’lumotlari — skanerlang', ru: 'Данные брони — отсканируйте', en: 'Booking details — scan me' },
   'bk.qr': { uz: 'Qabulxonada shu QR kodni ko‘rsating', ru: 'Покажите этот QR-код на ресепшене', en: 'Show this QR code at reception' },
   'inv.download': { uz: 'PDF yuklab olish', ru: 'Скачать PDF', en: 'Download PDF' },

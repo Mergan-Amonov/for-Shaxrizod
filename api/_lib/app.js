@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const QRCode = require('qrcode');
 const tg = require('./telegram');
 const session = require('./session');
 
@@ -65,6 +66,11 @@ function sameOrigin(req) {
   return true;
 }
 
+// Bot havolasi QR sifatida serverda chiziladi: token tashqi QR xizmatlariga chiqmaydi.
+function qrSvg(link) {
+  return QRCode.toString(link, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } });
+}
+
 function publicUser(u) {
   return u && { id: u.id, name: u.full_name, phone: u.phone, email: u.email || '', lang: u.lang || '' };
 }
@@ -127,7 +133,7 @@ function createHandler({ getDb }) {
   }
 
   // Saytdagi qadamlar: so'rov yaratish → kutish (bot havolasi) → uchta raqamdan birini tanlash.
-  async function site(req, res, path) {
+  async function site(req, res, path, url) {
     const db = getDb();
     const sess = session.read(req);
     const save = () => session.write(res, sess, isHttps(req));
@@ -150,7 +156,11 @@ function createHandler({ getDb }) {
       const row = await current();
       const status = row ? row.status : 'expired';
       const body = { status };
-      if (status === 'new' || status === 'started') body.botLink = `https://t.me/${tg.botUsername()}?start=${row.token}`;
+      if (status === 'new' || status === 'started') {
+        body.botLink = `https://t.me/${tg.botUsername()}?start=${row.token}`;
+        // QR faqat so'ralganda (sahifa birinchi marta ochilganda), har 2 soniyalik so'rovda emas.
+        if (url.searchParams.get('qr')) body.qrSvg = await qrSvg(body.botLink);
+      }
       if (status === 'contact') body.options = row.options.split(',').map(Number);
       return send(res, 200, body);
     }
@@ -180,7 +190,8 @@ function createHandler({ getDb }) {
         [token, code, options.join(','), lang]);
       sess.tgLogin = token;
       save();
-      return send(res, 200, { ok: true, botLink: `https://t.me/${tg.botUsername()}?start=${token}` });
+      const botLink = `https://t.me/${tg.botUsername()}?start=${token}`;
+      return send(res, 200, { ok: true, botLink, qrSvg: await qrSvg(botLink) });
     }
 
     if (path === '/api/auth/telegram/confirm') {
@@ -257,7 +268,7 @@ function createHandler({ getDb }) {
       const route = url.searchParams.get('route');
       const path = route ? '/api/' + route.replace(/^\/+|\/+$/g, '') : url.pathname.replace(/\/+$/, '');
       if (path === '/api/telegram/webhook' && req.method === 'POST') return await webhook(req, res);
-      if (path.startsWith('/api/auth/')) return await site(req, res, path);
+      if (path.startsWith('/api/auth/')) return await site(req, res, path, url);
       return send(res, 404, { error: 'not_found' });
     } catch (err) {
       console.error(err);
