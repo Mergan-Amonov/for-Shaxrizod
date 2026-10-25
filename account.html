@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=202610251647">
+<link rel="stylesheet" href="assets/css/style.css?v=2026102518341">
 </head>
 <body data-title="nav.account">
 <header id="site-header" class="site-header"></header>
@@ -23,11 +23,11 @@
     </div>
   </section>
 </main>
-<div class="modal" id="inv-modal" role="dialog" aria-modal="true"><div class="modal-box"><div class="modal-actions"><button class="btn btn--gold btn--sm" type="button" id="inv-print"></button><button class="btn btn--ghost btn--sm" type="button" id="inv-close"></button></div><div class="invoice" id="invoice"></div></div></div>
 <footer id="site-footer" class="site-footer"></footer>
-<script src="assets/js/data.js?v=202610251647"></script>
-<script src="assets/js/i18n.js?v=202610251647"></script>
-<script src="assets/js/app.js?v=202610251647"></script>
+<script src="assets/js/data.js?v=2026102518341"></script>
+<script src="assets/js/i18n.js?v=2026102518341"></script>
+<script src="assets/js/app.js?v=2026102518341"></script>
+<script src="assets/js/invoice.js?v=2026102518341"></script>
 <script>
 (function () {
   var N = window.NAQSH, D = window.NAQSH_DATA, t = N.t;
@@ -215,30 +215,6 @@
       '<button type="button" data-logout>' + N.icon('logout') + t('acc.logout') + '</button></nav><div>' + content() + '</div></div>';
   }
 
-  /* ---------- invoice ---------- */
-  function showInvoice(code) {
-    var b = bookings().filter(function (x) { return x.code === code; })[0]; if (!b) return;
-    var r = N.room(b.room), c = D.contact;
-    var rows = '<tr><td>' + N.esc(N.L(r.name)) + ' — ' + N.fmtDate(b.in) + ' — ' + N.fmtDate(b.out) + '</td><td>' + b.nights + '</td><td>' + N.money(r.price) + '</td><td>' + N.money(b.roomTotal) + '</td></tr>';
-    if (b.discount) rows += '<tr><td>' + t('q.early') + '</td><td>1</td><td></td><td>−' + N.money(b.discount) + '</td></tr>';
-    (b.extras || []).forEach(function (id) { var x = D.extras.filter(function (e) { return e.id === id; })[0]; rows += '<tr><td>' + N.esc(N.L(x.name)) + '</td><td>1</td><td>' + N.money(x.price) + '</td><td>' + N.money(x.price) + '</td></tr>'; });
-    document.getElementById('invoice').innerHTML =
-      '<div class="inv-head"><div><h2>' + t('inv.title') + '</h2><p style="margin:0;color:var(--muted)">№ INV-' + b.code.slice(3) + ' · ' + N.fmtDate(b.created.slice(0, 10)) + '</p></div><img src="assets/img/logo-sm.png" alt="NAQSH"></div>' +
-      '<div class="inv-meta"><div><b>' + t('inv.seller') + '</b>' + t('inv.company') + '<br>' + N.esc(N.L(c.address)) + '<br>' + t('inv.tin') + ': ___________<br>' + c.phone + '</div>' +
-      '<div><b>' + t('inv.buyer') + '</b>' + N.esc(b.guest.first + ' ' + b.guest.last) + '<br>' + N.esc(b.guest.email) + '<br>' + N.esc(b.guest.phone || '') + '<br>' + t('bk.code') + ': ' + b.code + '</div></div>' +
-      '<table class="table"><thead><tr><th>' + t('inv.item') + '</th><th>' + t('inv.qty') + '</th><th>' + t('inv.price') + '</th><th>' + t('inv.sum') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<div class="inv-total"><table><tr><td>' + t('q.net') + '</td><td>' + N.money(b.net) + '</td></tr><tr><td>' + t('q.vat') + '</td><td>' + N.money(b.vat) + '</td></tr><tr><td>' + t('q.total') + '</td><td>' + N.money(b.total) + '</td></tr></table></div>' +
-      '<p class="inv-foot">' + t('inv.paidBy', { m: b.method.toUpperCase() + ' •••• ' + b.last4 }) + (b.status === 'cancelled' ? ' · ' + t('st.cancelled') : '') + '<br>' + t('inv.note') + '</p>';
-    document.getElementById('inv-modal').classList.add('is-open');
-  }
-  function closeInvoice() { document.getElementById('inv-modal').classList.remove('is-open'); }
-  document.getElementById('inv-close').addEventListener('click', closeInvoice);
-  document.getElementById('inv-modal').addEventListener('click', function (e) { if (e.target.id === 'inv-modal') closeInvoice(); });
-  document.getElementById('inv-print').addEventListener('click', function () {
-    document.body.classList.add('printing'); window.print();
-    setTimeout(function () { document.body.classList.remove('printing'); }, 500);
-  });
-
   /* ---------- render + events ---------- */
   function draw() {
     document.getElementById('acc').innerHTML = user() ? dashView() : S.tg.view ? tgView() : authView();
@@ -256,8 +232,6 @@
         else N.toast(t('tg.error'));
       }).catch(function () { N.toast(t('tg.error')); });
     });
-    document.getElementById('inv-print').textContent = t('inv.download');
-    document.getElementById('inv-close').textContent = t('acc.close');
     var a = document.getElementById('auth');
     if (a) a.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -291,7 +265,6 @@
     if ((el = e.target.closest('[data-auth]'))) { S.authTab = el.getAttribute('data-auth'); S.smsSent = false; draw(); return; }
     if ((el = e.target.closest('[data-tab]'))) { S.tab = el.getAttribute('data-tab'); draw(); return; }
     if ((el = e.target.closest('[data-filter]'))) { S.filter = el.getAttribute('data-filter'); draw(); return; }
-    if ((el = e.target.closest('[data-inv]'))) { showInvoice(el.getAttribute('data-inv')); return; }
     if ((el = e.target.closest('[data-cancel]'))) {
       var code = el.getAttribute('data-cancel'), list = bookings();
       if (el.getAttribute('data-armed') !== '1') { el.setAttribute('data-armed', '1'); el.textContent = t('acc.cancelConfirm'); return; }
@@ -325,7 +298,6 @@
       N.store.del('naqsh.user'); draw();
     }
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeInvoice(); });
 
   N.onRender(draw);
   tgInit();

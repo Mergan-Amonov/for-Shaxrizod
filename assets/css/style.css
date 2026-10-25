@@ -393,6 +393,8 @@ body.has-hero .site-header:not(.is-solid){background:linear-gradient(180deg,rgba
 .inv-total td:last-child{text-align:right}
 .inv-total tr:last-child td{font-weight:800;font-size:1.1rem;border-top:1px solid var(--ink);padding-top:10px}
 .inv-foot{margin-top:30px;font-size:.78rem;color:var(--muted)}
+.invoice.is-pdf{padding:0;background:#fff}
+.invoice.is-pdf .inv-meta{grid-template-columns:1fr 1fr}
 
 /* Toast */
 .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;z-index:95;background:var(--navy-900);color:#fff;padding:14px 22px;border-radius:var(--radius);box-shadow:var(--shadow);font-size:.92rem;transition:all .35s;pointer-events:none;max-width:calc(100% - 32px)}
@@ -504,6 +506,7 @@ body.has-hero .site-header:not(.is-solid){background:linear-gradient(180deg,rgba
 
 /* Print — invoice only */
 @media print{
+  @page{margin:12mm}
   body.printing>*:not(.modal){display:none!important}
   body.printing .modal{position:static;display:block;background:none;padding:0}
   body.printing .modal-box{box-shadow:none;max-width:none}

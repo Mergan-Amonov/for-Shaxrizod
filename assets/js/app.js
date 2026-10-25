@@ -50,7 +50,12 @@
   function addDays(s, n) { var d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); }
   function nights(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
   function fmtDate(s) {
-    var loc = { uz: 'uz-Latn-UZ', ru: 'ru-RU', en: 'en-GB' }[lang];
+    // Browsers render uz-Latn as "2026 M10 25", so Uzbek months are spelled out by hand.
+    if (lang === 'uz') {
+      var p = String(s).split('-'), m = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'][+p[1] - 1];
+      return m ? +p[2] + '-' + m + ', ' + p[0] : s;
+    }
+    var loc = { ru: 'ru-RU', en: 'en-GB' }[lang];
     try { return new Date(s + 'T12:00:00').toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return s; }
   }
   function today() { return iso(new Date()); }
