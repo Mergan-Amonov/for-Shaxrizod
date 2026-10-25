@@ -89,7 +89,7 @@ function createHandler({ getDb }) {
 
     if (start && start[1]) {
       const name = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ').slice(0, 120);
-      const row = await db.one(`UPDATE telegram_logins
+      const row = await db.one(`UPDATE naqsh_telegram_logins
         SET telegram_id = $2, chat_id = $3, name = $4, username = $5, status = 'started'
         WHERE token = $1 AND status IN ('new', 'started') AND ${FRESH} RETURNING lang`,
       [start[1], msg.from.id, chatId, name, msg.from.username || null]);
@@ -108,8 +108,8 @@ function createHandler({ getDb }) {
       if (msg.contact.user_id !== msg.from.id) {
         await notify(chatId, tg.text('ownNumber'));
       } else {
-        const row = await db.one(`UPDATE telegram_logins SET phone = $2, status = 'contact'
-          WHERE token = (SELECT token FROM telegram_logins
+        const row = await db.one(`UPDATE naqsh_telegram_logins SET phone = $2, status = 'contact'
+          WHERE token = (SELECT token FROM naqsh_telegram_logins
                          WHERE telegram_id = $1 AND status = 'started' AND ${FRESH}
                          ORDER BY created_at DESC LIMIT 1)
           RETURNING code, lang`, [msg.from.id, String(msg.contact.phone_number || '').slice(0, 40)]);
@@ -132,12 +132,12 @@ function createHandler({ getDb }) {
     const sess = session.read(req);
     const save = () => session.write(res, sess, isHttps(req));
     const current = async () => (sess.tgLogin && db
-      ? db.one(`SELECT * FROM telegram_logins WHERE token = $1 AND ${FRESH}`, [sess.tgLogin])
+      ? db.one(`SELECT * FROM naqsh_telegram_logins WHERE token = $1 AND ${FRESH}`, [sess.tgLogin])
       : null);
     if (db) await db.ready();
 
     if (req.method === 'GET' && path === '/api/auth/me') {
-      const user = sess.userId && db ? await db.one('SELECT * FROM users WHERE id = $1', [sess.userId]) : null;
+      const user = sess.userId && db ? await db.one('SELECT * FROM naqsh_users WHERE id = $1', [sess.userId]) : null;
       return send(res, 200, {
         telegram: tg.enabled() && Boolean(db),
         user: publicUser(user),
@@ -172,11 +172,11 @@ function createHandler({ getDb }) {
         console.error(err.message);
         return send(res, 502, { error: 'telegram' });
       }
-      await db.run("DELETE FROM telegram_logins WHERE created_at < now() - interval '1 day'");
+      await db.run("DELETE FROM naqsh_telegram_logins WHERE created_at < now() - interval '1 day'");
       const token = crypto.randomBytes(18).toString('base64url');
       const { code, options } = tg.codeOptions();
       const lang = LANGS.includes(body.lang) ? body.lang : 'uz';
-      await db.run('INSERT INTO telegram_logins (token, code, options, lang) VALUES ($1, $2, $3, $4)',
+      await db.run('INSERT INTO naqsh_telegram_logins (token, code, options, lang) VALUES ($1, $2, $3, $4)',
         [token, code, options.join(','), lang]);
       sess.tgLogin = token;
       save();
@@ -191,7 +191,7 @@ function createHandler({ getDb }) {
         return send(res, 200, { result: 'expired' });
       }
       const ok = Number.parseInt(body.choice, 10) === row.code;
-      const done = await db.one("UPDATE telegram_logins SET status = $2 WHERE token = $1 AND status = 'contact' RETURNING token",
+      const done = await db.one("UPDATE naqsh_telegram_logins SET status = $2 WHERE token = $1 AND status = 'contact' RETURNING token",
         [row.token, ok ? 'done' : 'failed']);
       if (!ok || !done) {
         save();
@@ -199,14 +199,14 @@ function createHandler({ getDb }) {
         return send(res, 200, { result: 'failed' });
       }
 
-      let user = await db.one('SELECT * FROM users WHERE telegram_id = $1', [row.telegram_id]);
+      let user = await db.one('SELECT * FROM naqsh_users WHERE telegram_id = $1', [row.telegram_id]);
       const key = tg.phoneKey(row.phone);
       if (!user && key.length === 9) {
         // Telegram tasdiqlagan raqam bilan bitta hisob mos kelsa, hisob shu Telegramga ulanadi.
-        const matches = await db.all(`SELECT * FROM users
+        const matches = await db.all(`SELECT * FROM naqsh_users
           WHERE telegram_id IS NULL AND right(regexp_replace(coalesce(phone, ''), '\\D', '', 'g'), 9) = $1`, [key]);
         if (matches.length === 1) {
-          user = await db.one('UPDATE users SET telegram_id = $1 WHERE id = $2 RETURNING *', [row.telegram_id, matches[0].id]);
+          user = await db.one('UPDATE naqsh_users SET telegram_id = $1 WHERE id = $2 RETURNING *', [row.telegram_id, matches[0].id]);
         }
       }
 
@@ -238,9 +238,9 @@ function createHandler({ getDb }) {
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'invalid';
       if (Object.keys(errors).length) return send(res, 400, { error: 'invalid', fields: errors });
       const lang = LANGS.includes(body.lang) ? body.lang : null;
-      let user = await db.one(`INSERT INTO users (telegram_id, full_name, phone, email, lang) VALUES ($1, $2, $3, $4, $5)
+      let user = await db.one(`INSERT INTO naqsh_users (telegram_id, full_name, phone, email, lang) VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (telegram_id) DO NOTHING RETURNING *`, [sess.tg.id, name, sess.tg.phone, email || null, lang]);
-      if (!user) user = await db.one('SELECT * FROM users WHERE telegram_id = $1', [sess.tg.id]);
+      if (!user) user = await db.one('SELECT * FROM naqsh_users WHERE telegram_id = $1', [sess.tg.id]);
       sess.tg = null;
       sess.userId = user.id;
       save();

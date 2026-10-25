@@ -102,7 +102,7 @@ test('Telegram bot orqali kirish: telefon → uchta raqamdan mosini tanlash', { 
     assert.equal((await client().post('/api/auth/telegram/start', {}, { origin: 'https://evil.example' })).status, 403);
 
     // Telefoni bazada bor mehmon: to'g'ri raqam → kiradi va hisobi Telegramga ulanadi
-    await db.run("INSERT INTO users (full_name, phone, email) VALUES ('Telefonli Mehmon', '+998 90 777 88 99', 'tel@test.uz')");
+    await db.run("INSERT INTO naqsh_users (full_name, phone, email) VALUES ('Telefonli Mehmon', '+998 90 777 88 99', 'tel@test.uz')");
     const c = client();
     let { code, wrong, from } = await begin(c, 5001, '998907778899', 'ru');
     assert.equal(sent.filter((x) => x.method === 'setWebhook').length, 1);
@@ -114,7 +114,7 @@ test('Telegram bot orqali kirish: telefon → uchta raqamdan mosini tanlash', { 
     assert.equal(r.json.result, 'login');
     assert.equal(r.json.user.name, 'Telefonli Mehmon');
     assert.equal((await c.get('/api/auth/me')).json.user.email, 'tel@test.uz');
-    assert.equal((await db.one("SELECT telegram_id FROM users WHERE email = 'tel@test.uz'")).telegram_id, 5001);
+    assert.equal((await db.one("SELECT telegram_id FROM naqsh_users WHERE email = 'tel@test.uz'")).telegram_id, 5001);
     assert.match(sent.at(-1).body.text, /✅/);
     await c.post('/api/auth/logout');
     assert.equal((await c.get('/api/auth/me')).json.user, null);
@@ -141,7 +141,7 @@ test('Telegram bot orqali kirish: telefon → uchta raqamdan mosini tanlash', { 
     r = await fresh.post('/api/auth/register', { name: 'Shaxrizod Karimov', email: 'sh@test.uz', lang: 'uz' });
     assert.equal(r.status, 200);
     assert.equal(r.json.user.phone, '+998935554433');
-    assert.equal((await db.one("SELECT telegram_id FROM users WHERE email = 'sh@test.uz'")).telegram_id, 6002);
+    assert.equal((await db.one("SELECT telegram_id FROM naqsh_users WHERE email = 'sh@test.uz'")).telegram_id, 6002);
     await fresh.post('/api/auth/logout');
     ({ code } = await begin(fresh, 6002, '998935554433'));
     r = await fresh.post('/api/auth/telegram/confirm', { choice: code });

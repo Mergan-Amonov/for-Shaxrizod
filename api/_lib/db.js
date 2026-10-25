@@ -3,8 +3,9 @@ const { Pool, types } = require('pg');
 // BIGINT (telegram_id) son bo'lib qaytsin — Telegram ID lari 2^53 dan kichik.
 types.setTypeParser(20, (v) => Number(v));
 
+// Jadval nomlari naqsh_ bilan: baza boshqa loyiha bilan umumiy bo'lsa ham to'qnashmaydi.
 const SCHEMA = `
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS naqsh_users (
   id          SERIAL PRIMARY KEY,
   telegram_id BIGINT UNIQUE,
   full_name   TEXT NOT NULL,
@@ -15,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Telegram bot orqali kirish so'rovlari: sayt token beradi, bot telefonni oladi, foydalanuvchi raqamni tanlaydi.
-CREATE TABLE IF NOT EXISTS telegram_logins (
+CREATE TABLE IF NOT EXISTS naqsh_telegram_logins (
   token       TEXT PRIMARY KEY,
   code        INTEGER NOT NULL,
   options     TEXT NOT NULL,
