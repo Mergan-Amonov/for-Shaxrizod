@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>https://naqsh-hotel.uz/</loc><changefreq>weekly</changefreq><priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/?lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/rooms.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/rooms.html?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/rooms.html?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/rooms.html?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/rooms.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/rooms.html?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/rooms.html?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/rooms.html?lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/room.html?type=standard</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/room.html?type=standard&amp;lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/room.html?type=standard&amp;lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/room.html?type=standard&amp;lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/room.html?type=standard</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/room.html?type=standard&amp;lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/room.html?type=standard&amp;lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/room.html?type=standard&amp;lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/room.html?type=deluxe</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/room.html?type=deluxe&amp;lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/room.html?type=deluxe&amp;lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/room.html?type=deluxe&amp;lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/room.html?type=deluxe</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/room.html?type=deluxe&amp;lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/room.html?type=deluxe&amp;lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/room.html?type=deluxe&amp;lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/room.html?type=family</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/room.html?type=family&amp;lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/room.html?type=family&amp;lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/room.html?type=family&amp;lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/room.html?type=family</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/room.html?type=family&amp;lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/room.html?type=family&amp;lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/room.html?type=family&amp;lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/room.html?type=heritage-suite</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/room.html?type=heritage-suite&amp;lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/room.html?type=heritage-suite&amp;lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/room.html?type=heritage-suite&amp;lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/room.html?type=heritage-suite</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/room.html?type=heritage-suite&amp;lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/room.html?type=heritage-suite&amp;lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/room.html?type=heritage-suite&amp;lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/services.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/services.html?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/services.html?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/services.html?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/services.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/services.html?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/services.html?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/services.html?lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/gallery.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/gallery.html?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/gallery.html?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/gallery.html?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/gallery.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/gallery.html?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/gallery.html?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/gallery.html?lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/contacts.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/contacts.html?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/contacts.html?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/contacts.html?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/contacts.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/contacts.html?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/contacts.html?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/contacts.html?lang=en"/>
   </url>
-  <url><loc>https://naqsh-hotel.uz/policies.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.uz/policies.html?lang=uz"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.uz/policies.html?lang=ru"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.uz/policies.html?lang=en"/>
+  <url><loc>https://naqsh-hotel.vercel.app/policies.html</loc><changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://naqsh-hotel.vercel.app/policies.html?lang=uz"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://naqsh-hotel.vercel.app/policies.html?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://naqsh-hotel.vercel.app/policies.html?lang=en"/>
   </url>
 </urlset>
